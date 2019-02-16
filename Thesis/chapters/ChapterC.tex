@@ -1,0 +1,283 @@
+% !Mode:: "TeX:UTF-8"
+
+\chapter{动态双边聚类算法\emph{CoSync}}
+\label{chapter:main}
+\section{双聚类问题的全新切入点}
+\label{sec:start}
+就如同上一章中回顾的那样，对于双边聚类问题已有各式各样的方法来解决。在我们这次工作中，我们将要使用一种全新的思想来看待这个问题，即\emph{动态交互}。在这种角度下，我们把整个数据的关联矩阵视为一个动态系统，用同步交互的方式来自动地引导矩阵中值的变化。
+
+我们用图\ref{idea}说明如何从矩阵中用这种自动的交互得到联合簇。对于一个数据集的交互矩阵$A$中每一个元素$e_{ij}$所在行和列，我们首先找寻相关的行与列，即与选定行或列距离小于一定阈值的行或列。随后找到的相关的行或列中下标对应为$i$或$j$的元素，即图\ref{idea}(b)中与红色小框同行或同列的蓝色和橘色小框所代表的元素，让它们对$e_{ij}$产生动态的加权交互，体现为一个“引力”，使得交互的结果趋近于缩小差值。这个过程将一直迭代下去直至收敛，收敛后对矩阵行列重新排序，得到结果矩阵如\ref{idea}(c)所示。
+
+\pic[!htb]{\cosync算法中矩阵元素在行列上的动态交互示意图 (a)关联矩阵的原始状态图，颜色深浅不一的小矩形代表原矩阵中元素值的大小，颜色越深值越小。(b) 矩阵总任意一元素的交互示意，红色小框代表的元素将被相关行列中对应的元素交互影响。(c) 算法收敛后矩阵行列排好序的最终状态，两个绿色框代表的联合簇都被自动发掘出来了。}{width=150mm}{idea}
+
+关于交互的强弱，即“引力”的大小，应该遵循这样的原则：当某些行（或列）之间的距离越小，则说明它们之间的相似性越大，它们越倾向于包含我们想要找寻的联合簇，故越应该受到我们的关注。在这样原则的引导下，我们将对应交互的权重调高，反之若行（或列）间的距离越大，则将对应的交互的权重调小。
+
+这个模型的细节将在第\ref{sec:main}节进行详述，通过这个迭代的加权交互过程，聚类簇已经自动浮现出来了，体现为图中值全部一致的绿色方框，剩下的工作就是用算法将其识别出来。需要注意的是，搜索结果矩阵中值相等的子矩阵也不是一个平凡的问题，若暴力搜索则时间复杂度为指数函数，故我们提出一种巧妙地搜索方法，见第\ref{sec:pattern_search}节。
+
+
+\section{双边加权交互聚类模型}
+\label{sec:main}
+现在将正式引入模型定义，首先来对一些符号表示进行说明。
+
+\textbf{符号说明}：对于矩阵$A=(A_I,A_J)$，$A_I$和$A_J$分别为矩阵$A$的行列集合。$a_{i\cdot}\in{}A_I$代表矩阵的第$i$行，$a_{\cdot{}j}\in{}A_J$代表矩阵的第$j$列。一个联合簇可以表示为矩阵$A$的子矩阵，用$B$表示，$B=A(I_S,J_S)$，其中$I_S$为$A_I$的子集的索引集合，$J_S$为$J_S$的$A_J$的子集的索引集合。$a_{ij}$对应着矩阵$A$第$i$行第$j$列的值。
+
+\begin{dingyi}[行或列的$\epsilon$邻域邻居]
+给一个矩阵$A$和一个常数$\epsilon\in\mathcal{R}$，任意一行\\$a_{i\cdot}\in{}A_I$的$\epsilon$邻域邻居$N_{\epsilon}^{r}(a_{i\cdot})$可以表示为：
+\begin{equation}
+N_{\epsilon}^{r}(a_{i\cdot})=\{a_{p\cdot} \big{|} dist(a_{p\cdot}, a_{i\cdot})\leq\epsilon, p \in I\}
+\label{def:Nbr}
+\end{equation}
+其中$dist(\cdot,\cdot)$是一个距离函数，在这里用的是欧几里得距离。列$a_{\cdot{}j}\in{}A_J$的$\epsilon$邻域邻居$N_{\epsilon}^{c}(a_{\cdot{}j})$按照同样方式定义如下：
+\begin{equation}
+N_{\epsilon}^{c}(a_{\cdot{}j})=\{a_{\cdot{}q} \big{|} dist(a_{\cdot{}q}, a_{\cdot{}j})\leq\epsilon, q \in J\}
+\label{def:Nbc}
+\end{equation}
+\end{dingyi}
+
+如同Kurumoto model\citeup{kuramoto2012chemical}和\Sync算法\citeup{shao2011synchronization}中的同步交互模型类似的，我们定义双边模型如下：
+
+\begin{dingyi}[双边交互聚类模型]
+\label{def:cosync}
+对于矩阵$A$中的元素$a_{ij}$，分别找出其行$a_{i\cdot}$或者列$a_{\cdot{}j}$的$\epsilon$邻域邻居，则邻居行、列中和元素$a_{ij}$交互的值分别为$a_{pj}$和$a_{iq}$，其中$p\in{}N_{\epsilon}^{c}(a_{i\cdot}(t)),q\in{}N_{\epsilon}^{r}(a_{\cdot{}j}(t))$。在$t$时刻的交互模型为：
+\begin{IEEEeqnarray}{rCl}
+a_{ij}(t+1) &=& a_{ij}(t)+\frac{w^{r}(j)}{2|N_{\epsilon}^{r}(a_{i\cdot}(t))|}\cdot \hspace{-2mm}\sum_{a_{p\cdot}\in{}N_{\epsilon}^{c}(a_{i\cdot}(t))}\hspace{-5mm}\sin(a_{pj}(t)-a_{ij}(t)) \nonumber
+\\
+&& \negmedspace{}+\frac{w^{c}(i)}{2|N_{\epsilon}^{c}(a_{\cdot{}j}(t))|}\cdot \hspace{-2mm}\sum_{a_{\cdot{}q}\in{}N_{\epsilon}^{r}(a_{\cdot{}j}(t))}\hspace{-5mm}\sin (a_{iq}(t)-a_{ij}(t))
+\end{IEEEeqnarray}
+\end{dingyi}
+
+其中$sin(\cdot)$是耦合函数，$a_{ij}(t+1)$是矩阵元素$A_{ij}$在$t+1(t=(0,\ldots,T))$时刻下的取值，这个交互模型中右边两项分别刻画了矩阵的行、列交互。如同我们在前面所描述的，距离越小的行（或列）的交互影响力应该越大，我们定义一个交互权重因子如下：
+
+\begin{dingyi}[交互权重因子]
+对于矩阵元素$A_{ij}$的$\epsilon$邻域行邻居$N_{\epsilon}^{r}(a_{\cdot{}j}(t))$，其对\\$A_{ij}$的交互权重因子定义为：
+\begin{IEEEeqnarray}{rCl}
+w^{r}(j) &=& e^{-\lambda\cdot \sigma_{j}}
+\label{eq:wr}
+\end{IEEEeqnarray}
+其中$\sigma_j$为向量$\nu_{pj} =\{ abs(a_{pj} - a_{ij}) \big{|} a_{p\cdot}\in N_{\epsilon}^{r}(a_{i\cdot}(t))\}$的标准差。同样的，对于$\epsilon$邻域列邻居$N_{\epsilon}^{c}(a_{i\cdot}(t))$的交互权重因子定义为：
+\begin{IEEEeqnarray}{rCl}
+w^{c}(i) &=& e^{-\lambda\cdot \sigma_{i}}
+\label{eq:wc}
+\end{IEEEeqnarray}
+其中$\sigma_i$为向量$\nu_{iq} =\{ abs(a_{iq} - a_{ij}) \big{|} a_{\cdot{}q}\in N_{\epsilon}^{c}(a_{\cdot{}j}(t))\}$的标准差。
+\end{dingyi}
+
+\vspace{2mm}
+\textbf{双边交互聚类模型}：现在基于新定义的交互权重因子，之前的模型\ref{def:cosync}可以进行改写。这次我们将行、列的交互分开来写为以下形式：
+\begin{equation}
+I_{row}(t) = \frac{w^{r}(j) }{2|N_{\epsilon}^{r}(a_{i\cdot}(t))|}\cdot \hspace{-2mm}\sum_{a_{p\cdot}\in
+N_{\epsilon}^{r}(a_{i\cdot}(t))}\hspace{-5mm}\sin (a_{pj}(t)-a_{ij}(t))
+\label{eq:row}
+\end{equation}
+\begin{equation}
+I_{col}(t) = \frac{w^{c}(i) }{2|N_{\epsilon}^{c}(a_{\cdot{}j}(t))|}\cdot \hspace{-2mm}\sum_{a_{\cdot{}q}\in{}N_{\epsilon}^{c}(a_{\cdot{}j}(t))}\hspace{-5mm}\sin (a_{iq}(t)-a_{ij}(t))
+\label{eq:col}
+\end{equation}
+
+最后，加权双边交互聚类模型可以写为如下形式：
+\begin{equation}
+a_{ij}(t+1) = a_{ij}(t)+ I_{row}(t) + I_{col}(t)
+\label{eq:model}
+\end{equation}
+
+为了衡量矩阵中的同步的程度，从而决定算法的终结，我们引入同步因子$r$如下：
+\begin{dingyi}[同步因子]
+同步因子$r$在随时间迭代的每一步都会被计算，以决定是否终结加权双边交互算法，其表达式为：
+\begin{IEEEeqnarray}{rCl}
+r &=&\frac{1}{2|I|}\sum_{i=1}^{|I|}\frac{1}{|N_{\epsilon}^{r}(a_{i\cdot})|}\sum_{a_{p\cdot}\in N_{\epsilon}^{r}(a_{i\cdot})}\hspace{-2mm}\mathbf{e}^{-||a_{p\cdot}-a_{i\cdot}||} \nonumber
+\\
+&&\negmedspace{}+\frac{1}{2|J|}\sum_{i=1}^{|J|}\frac{1}{|N_{\epsilon}^{c}(a_{\cdot{}j})|}\sum_{a_{\cdot{}q}\in N_{\epsilon}^{c}(a_{\cdot{}j})}\hspace{-2mm}\mathbf{e}^{-||a_{\cdot{}q}-a_{\cdot{}j}||} \label{eq:r}
+\end{IEEEeqnarray}
+
+
+\end{dingyi}
+双边交互聚类模型的运行过程如图\ref{idea}所示。当$r(t)$随着时间$t$收敛，代表着双边加权交互模型的同步进行到了一定程度，于是可以终结迭代。
+
+\section{同步矩阵的同值子矩阵搜索}
+\label{sec:pattern_search}
+在上一节的双边加权动态交互迭代结束后，矩阵中属于同一联合簇的元素现已经同步为同一数值了，但由于联合簇分在矩阵中，需要设计算法将其位置找出，如式\ref{example}所示。
+\begin{equation*}
+\label{example}
+  A = \left(
+    \begin{array}{cccc}
+      0.3 & 0.3 & 1.1 & 1.1 \\
+      0.3 & 0.3 & 1.1 & 1.1 \\
+      0.3 & 0.3 & 0.3 & 0.3 \\
+      0.5 & 0.5 & 0.5 & 0.5 \\
+      0.3 & 0.5 & 0.3 & 0.3 \\
+      0.5 & 0.5 & 0.5 & 0.5 \\
+    \end{array}
+  \right)
+\end{equation*}
+
+式中包含三个值：$0.3,0.5$和$1.1$，现在需要一种策略，来自动对应不同值所对应的不连续的子矩阵，找出其行、列的索引集合。如前文所述，这也不是一个平凡的问题，如果直接搜索，时间复杂度随矩阵规模指数增长，使该问题成为一个难以直接求解的NP问题。
+
+注意到在结果矩阵中能找到的同值的子矩阵非常多，不加约束的话，很多元素都会被重复出现在小尺寸的子矩阵中。这是不符合易于理解的联合簇的定义方式的，我们不要求找到所有的同值子矩阵，我们只关心整个矩阵中尺寸较大的联合簇，也就尺寸较大的子矩阵。
+
+本着这样的思想，我们重新定义搜索问题为结果矩阵中的尺寸最大同值子矩阵的搜索问题。可以看出比起之前的搜索所有子矩阵，目前的问题只需搜索尺寸最大子矩阵是一个很大的简化。正式问题描述如下：
+
+\begin{dingyi}[最大尺寸同值子矩阵搜索问题]
+\label{pattern_problem}
+对于经过双边加权聚类收敛的结果矩阵$A=(A_I,A_J)$，要求是在子矩阵中找到最大的子矩阵$B=A(I_S,J_S)=\pi$为一常数矩阵，其中$I_S,J_S$分别为$A_I,A_J$的子集的索引集合，其尺寸$|I_S|\cdot|J_S|$的值最大。目标函数写做如下形式：
+\begin{IEEEeqnarray}{rCl}
+\max_{I_S,J_S}&\quad&Size(B)=|I_S|\cdot|J_S| \label{compute}\\
+s.t.&\,&\left\{
+\begin{array}{l}
+  A(I_S,J_S) = \pi\\
+  I_S\in{}I,J_S\in{}J
+\end{array} \right.\nonumber
+\end{IEEEeqnarray}
+\end{dingyi}
+
+注意到由于每次搜索一个子矩阵的时候，其值$\pi$是固定的，而其他值的具体取值并不影响本次搜索。故为了方便表示，对矩阵中的每一个取值$\pi_k$都引进一个指示矩阵$A^{(\pi_k)}$，对$A^{(\pi_k)}$中的每个元素$A^{(\pi_k)}_{ij}$，其取值如下：
+\begin{equation}
+  A^{(\pi_k)}_{ij} =
+    \begin{cases}
+      1 & \text{if }A_{ij} = \pi_k,\\
+      0 & \text{otherwise.}
+    \end{cases}
+\end{equation}
+
+则搜索原矩阵$A$中每一个取值$\pi_k$所对应的子块对应于搜索指示矩阵$A^{(\pi_k)}$中值为$1$的最大子块。如式\ref{example}中三个值的指示矩阵如图\ref{indicate_matrix}所示：
+\pic[!htb]{指示矩阵与特定值对应的最大联合簇}{width=150mm}{indicate_matrix}
+
+从图\ref{indicate_matrix}中可以明显地看出，对应于$0.3$的指示矩阵中最大联合簇有两个，尺寸均为$6$，取值为$0.5$的指示矩阵中最大联合簇尺寸为$8$，而取值$1.1$的指示矩阵中最大联合簇尺寸为$4$。
+
+写成指示矩阵的形式后，可以看出这个问题可以类比于为频繁项挖掘问题\citeup{agrawal1993mining}：将一行视为一个购物篮数据，一列视为一种商品。通常来说搜索频繁项问题的基础问题有两个：\emph{Apriori}\citeup{agrawal1994fast}和\emph{FP-growth}\citeup{han2000mining}，在这里我们借用\emph{FP-growth}的数据结构FP-tree。问题\ref{pattern_problem}的具体解决方案如下。
+
+\vspace{2mm}
+\textbf{最大同值子矩阵搜索算法}：
+
+\textbf{(1) 离散化}：经过第\ref{sec:main}节中双边交互算法得到的结果矩阵，由于其取值为浮点数，首先要控制其精度，比如取到小数点后两位。此时矩阵$A$中取值范围为有限多个。
+
+\textbf{(2) 转化为指示矩阵}：对矩阵$A$中的每一个取值$\pi_k$都引进一个指示矩阵$A^{(\pi_k)}$，例如下图为一个特定的指示矩阵，最大子矩阵为粗体标记的数字$1$所在的子块中。
+\pic[!htb]{指示矩阵示意图}{width=60mm}{a_indicate}
+\vspace{-1mm}
+
+\textbf{(3) 建立FP-tree}：接下来的搜索将对每一个指示矩阵进行。对任一指示矩阵$A^{(\pi_k)}$，首先统计每一列包含数字$1$的频数，之后将矩阵的列按照频数递减的顺序重新排序，图\ref{a_indicate}中的指示矩阵频数表统计如图(a)所示.
+\pic[!htb]{频数统计表和FP-tree}{}{fptree}
+\vspace{-1mm}
+
+建立FP-tree并逐行排序后的指示矩阵，遇上数字$1$的时候，若树中无节点，则建立新的节点，将该节点计数$count$值设为$1$；否则将对应的节点$count$值加$1$。将该行的行号记录到节点对应的行号集合$I_S$中。
+
+\textbf{(4) 搜索与嫁接}：这一步将反复搜索与嫁接两个步骤，直到null节点下没有任何节点停止。具体步骤如下：
+\begin{itemize}
+\item \textbf{~~搜索}：将null节点下按频数表的排序从最靠前的子结点开始，采用深度优先遍历，计算遍历到的节点所对应矩阵子块的尺寸$Size$，计算方式如式\ref{compute}所示。记录目前为止最大的$Size$值对应的节点。图\ref{search}演示了搜索步骤进行到节点c，即指示矩阵的第三列时的示意图。图中c节点对应的矩阵子块行集合为$I_S={1,5,6,8}$，列集合为$J_S={a,b,c}$，尺寸为$Size=4\times3=12$。
+\pic[!htb]{FP-tree上的search}{width=120mm}{search}
+\vspace{-1mm}
+
+\item \textbf{~~嫁接}：当搜索步骤遍历完null下一个节点分支（如图\ref{search}中a节点分支）时候，需要去除该节点，并将该节点下所有子分支嫁接到null节点下其他分支下。如图\ref{graft}所示，图中a节点被去除去，a节点下所有分支被嫁接到null节点下的其他分支下。
+\pic[!htb]{FP-tree的嫁接图}{}{graft}
+
+\end{itemize}
+
+重复这这个搜索与嫁接的步骤，直到null节点下没有任何节点。图\ref{buzhou1},\ref{buzhou2}演示了上图所示的标示矩阵及其对应的FP-tree在搜索与嫁接过程中的两个快照。
+\pic[!htb]{FP-tree上的search。图中原本的a分支已被去除，a节点下的子分支嫁接到null节点下。这一举措对后续搜索步骤的影响为对去除第一列的指示矩阵进行搜索。}{width = 120mm}{buzhou1}
+\vspace{-3mm}
+\pic[!htb]{FP-tree上的search。图中原本的a分支、b分支都已被去除，a、b节点下的子分支嫁接到null节点下。这一举措对后续搜索的影响为对去除第一、二列的指示矩阵进行搜索。}{width = 124mm}{buzhou2}
+
+在搜索与嫁接步骤结束后，该指示矩阵下所有子块均遍历一遍，算法输出最大联合簇对应的行、列集合。
+
+\section{高维数据下的非负矩阵分解}
+\label{sec:nmf}
+对于第\ref{sec:main}节中描述的双边加权聚类模型，我们需要对每一行和每一列搜索相似的邻居，即$\epsilon$邻域邻居。但是随着矩阵维度的增加，在度量相似性的时候会碰上高维诅咒（Curse of dimensionality）的困扰
+\footnote{\url{https://en.wikipedia.org/wiki/Curse_of_dimensionality}}
+。此时测度空间中任意两点的距离趋向同一个定值，给我们的算法带来困扰。
+
+因此，我们在本章中介绍非负矩阵分解（NMF）的算法。它将把原矩阵转换为两个不包含负元素的低阶矩阵，且这种转换保留了大部分的信息，使得在原矩阵上的行、列的相似性度量可以转化为在两个低阶矩阵上分别做相似性度量。
+
+\textbf{非负矩阵分解}：给定一个矩阵$A\in\mathbb{R}^{m\times{}n}$以及一个正整数$k\le\min(m,n)$，非负矩阵分解的目的是找到两个因子矩阵：$W\in\mathbb{R}^{m\times{}k}$和$H\in\mathbb{R}^{n\times{}k}$，使得：
+\begin{equation}
+\mathbf{A}\approx \textbf{W}\textbf{H}^T
+\label{def:NMF}
+\end{equation}
+
+在这种情况下在原矩阵$A$的距离度量可以用两个新矩阵$W$和$H$上的距离度量估计。在本文中我们将采取广泛使用的弗罗贝尼乌斯范数（Frobenius norm），将式\ref{def:NMF}的估计工作转为以下最小化求解问题：
+\begin{IEEEeqnarray}{rCl}
+\min_{\textbf{W},\textbf{H}}&\quad&f(\textbf{W},\textbf{H}) = ||\textbf{A}-\textbf{WH}^T||_{F}^2 \label{wh_solve}\\
+s.t.&&\textbf{W}\geq0, \textbf{H}\geq0 \nonumber
+\end{IEEEeqnarray}
+
+用式\ref{wh_solve}求出$A$的低阶估计后，原矩阵的第$i$行$A(i,:)$可表示为$A(i,:)=W(i,:)\cdot{}H^T$，原矩阵第$j$列$A(:,j)$可表示为$A(:,j)=W\cdot{}H(:,i)^T$，见下图：
+\pic[!htb]{非负矩阵分解图}{width=120mm}{nmf}
+
+在$W$和$H$上进行相似性度量有两个显著的好处：(1)减小了高维诅咒带来的困扰；(2)大大减小函数的计算时间和空间。
+
+\section{CoSync算法}
+\label{sec:algorithm}
+\vspace{-2mm}
+以式\ref{eq:model}的交互模型为核心，最大子矩阵搜索算法和NMF算法为辅助，\cosync\\算法全过程可以总结如下几个步骤。完整的CoSync算法伪代码如算法\ref{alg:CoSync}表示。
+\begin{enumerate}
+\item \textbf{初始化}：给定数据矩阵$A$，首先对其进行L2归一化。若$A$的维度比较高，则用第\ref{sec:nmf}节所述的NMF的算法将$A$分解为$W$和$H$矩阵再进行后续求解。
+\item \textbf{双边加权动态交互}：对于矩阵$A$的每一个元素$A_{ij}$，我们先在矩阵$A$上（或者分别在$W$和$H$上）用式\ref{def:Nbr}和\ref{def:Nbc}找出其$\epsilon$邻域邻居$N_{\epsilon}^{r}(a_{i\cdot})$和$N_{\epsilon}^{c}(a_{\cdot{}j})$，那对于该时刻$t$的下一时刻元素$A_{ij}$取值$a_{ij}(t+1)$将会根据式(\ref{eq:model})进行求解。在同步思想的作用下，同一联合簇中的矩阵元素将趋向于取同样的值。
+\item \textbf{同值子矩阵搜索}：在加权交互步骤结束后的同步矩阵将被转换为第\ref{sec:pattern_search}节中的FP-tree，用我们提出的最大子矩阵搜索方法求解。
+\end{enumerate}
+
+{\renewcommand\baselinestretch{1.0}\selectfont  %这条语句是缩小算法的行距，使看起来更美观
+\begin{algorithm}[!p]
+\caption{CoSync}
+\label{alg:CoSync}
+\begin{algorithmic}[1]
+\small{
+\STATE \textbf{输入:} 数据集矩阵$A$\\[1ex]
+\STATE $A = norm(A)$; //行或列归一化
+\IF{矩阵规模超过一阈值}
+    \STATE [W, H] = NMF(A); //非负矩阵分解
+\ENDIF \\[1ex]
+\WHILE{循环变量为$1$}
+    \STATE // 行交互
+    \FOR{每一个行向量  $a_{i\cdot} \in A$}
+        \IF{矩阵规模超过一阈值}
+            \STATE 在矩阵 $W$ 上寻找$\epsilon$邻域邻居 $N_{\epsilon}^{r}(a_{i\cdot})$;
+        \ELSE
+            \STATE 在矩阵 $A$ 上寻找$\epsilon$邻域邻居 $N_{\epsilon}^{r}(a_{i\cdot})$;
+        \ENDIF\\[1ex]
+        \FOR{$N_{\epsilon}^{r}(a_{i\cdot})$中每一列 $j \in J$}
+            \STATE 用(\ref{eq:wr})式来计算列权重因子$w(j)$;
+        \ENDFOR
+        \STATE 用(\ref{eq:row})式来计算每一个$\epsilon$邻域邻居%\\
+        $a_{p\cdot}\in N_{\epsilon}^{r}(a_{i\cdot})$对$a_{i\cdot}$的交互值；
+    \ENDFOR\\[1ex]
+    \STATE // 列交互
+    \FOR{对每一个列向量 $a_{\cdot{}j} \in A$}
+        \IF{矩阵规模超过一阈值}
+            \STATE 在矩阵 $H$ 上寻找$\epsilon$邻域邻居 $N_{\epsilon}^{c}(a_{\cdot{}j})$;
+        \ELSE
+            \STATE 在矩阵 $A$ 上寻找$\epsilon$邻域邻居 $N_{\epsilon}^{c}(a_{\cdot{}j})$;
+        \ENDIF
+        \FOR{$N_{\epsilon}^{c}(a_{\cdot{}j})$中每一行 $i \in I$}
+            \STATE 用(\ref{eq:wc})式来计算行权重因子$w(i)$;
+        \ENDFOR
+        \STATE 用(\ref{eq:col})式来计算每一个$\epsilon$邻域邻居%\\
+        $a_{\cdot{}q}\in N_{\epsilon}^{c}(a_{\cdot{}j})$对$a_{\cdot{}j}$的交互值；
+    \ENDFOR
+    \STATE 用式(\ref{eq:model})来更新矩阵 $A$;
+    \STATE 用式(\ref{eq:r})来计算同步因子 $r$；
+     \IF{同步因子 $r$ 收敛}
+        \STATE 循环变量设为$0$;
+     \ENDIF
+ \ENDWHILE\\[1ex]
+\STATE //寻找联合簇
+     \FOR{对于每一个离散值 $\pi_k$}
+         \STATE 用(\ref{sec:pattern_search})节提出的算法搜寻其对应的%\\
+         最大子矩阵$B^{(\pi_k)}$;
+     \ENDFOR
+      \STATE 找到所有的联合簇 $B$;\\[1ex]
+\STATE \textbf{输出:} 联合簇矩阵$B$
+}
+\end{algorithmic}
+\end{algorithm}
+\par} %最后这句是取消后面语句的算法格式，使其恢复先前的格式
+
+\vspace{-2mm}
+\section{时间复杂度分析}
+\label{time_complex}
+\vspace{-2mm}
+假设原矩阵$A$的维度为$(M\times{}N)$，对于其中元素$A_{ij}$，其行、列邻居个数分别为$p,q$，则\cosync算法在找寻行列邻居的计算次数为${N\choose2}M(M-1)+{M\choose2}N(N-1)$，即复杂度为$O(N^2 M^2)$。若引入NMF，将$A$转化为$W(M\times{}K)$和$N(K\times{}N)$，其中$K\ll{}(M,N)$，则邻居搜索的复杂度下降到$\min\left(O\left(K^2M^2\right),O\left(K^2N^2\right)\right)$。假如在邻居找寻步骤中任意一点的行、列邻居数分别为$P,Q$，则在双边加权交互模型中的计算次数为$MN(P(N+1)+Q(M+1))$，由于$P,Q$为常数，其计算复杂度为$O(MN(M+N)\times{}T)$，其中$T$为迭代次数。在最后的最大同值子矩阵寻找中，最坏的时间复杂度为$N^2M$。
+
+\vspace{-2mm}
+\section{本章小结}
+\vspace{-2mm}
+本章从\cosync解决问题的思想方式方式开始，详述了同步的和动态交互的工作原理（第\ref{sec:start}节）；接着在第\ref{sec:main}节详细说明了\cosync算法核心：双边加权交互聚类模型，给出了模型公式并引入控制同步迭代结束的条件：同步因子；在交互模型收敛后，得到的同步矩阵已有大量的同值子块，需要用第\ref{sec:pattern_search}节给出的最大同值子矩阵搜索算法来发掘这些聚类簇。面对现实情况中的高维数据集，传统的距离度量方式都会失效，第\ref{sec:nmf}节提出的NMF算法来解决这一困扰。最后，在介绍完上述所有模型和算法后，第\ref{sec:algorithm}节总结了\cosync算法的完整工作流程和伪代码，第\ref{sec:algorithm}节给出了算法的时间复杂度分析。
+
+\newpage\mbox{}\thispagestyle{empty}\newpage

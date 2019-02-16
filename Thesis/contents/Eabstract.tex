@@ -1,0 +1,18 @@
+% !Mode:: "TeX:UTF-8"
+
+% \addtocounter{page}{-1}
+\begin{Eabstract}{Trajectory Compression}{Trajectory Representation}{POI Recommendation}{}{}
+Recently, with the pervasive use of mobile devices and the improvement of store and computing capacity, massive amount of trajectory data and check-in data have been generating at a dazzling speed. There are human mobility patterns waiting to be exploited behind those data. Therefore, trajectory mining topics such as storing, compression and representation draw growing attention to provide profound influences in economy, environment and transportation. In business, the user preference and other knowledge extracted from the sea of trajectory data and check-in data can benefit the location recommendation process. Thus human life quality can be improved, and business with different scales can make a profit out of it.
+
+To handle the trajectory data, this work proposes a trajectory compression and representation method. Different from traditional methods which deal with each trajectory individually, this work globally processes the whole data set. Not only is the process very efficient, but the semantic information that those traditional methods ignore is also captured by integrating the auxiliary urban point of interest (POI) information. By doing this, for one thing, the trajectories located on the spares areas can be regulated and corrected. And for another, the places of interest can be understood well. Furthermore, to overcome the defect that places are represented by coordinate pairs on the map and thus the semantic information cannot be revealed, this work proposes a representation method that project a place to a distributed latent vector. The similarity between two latent vectors stands for the semantic similarity of the two places, and thus the downstream applications can be expedited. At last, this work provides a novel explainable place recommendation method. By locally applying a forwarding stagewise manner matrix factorization on the rating data, the result factors are enriched with meanings and the recommendation results become easy to explain. To conclude, the contributions of this work is as bellows.
+
+\begin{enumerate}
+\item ~~~ A semantic trajectory compression model is proposed by considering both global trajectory structure information and available contextual information. This method provides a new perspective for compressing trajectories with semantics.
+\item ~~~ Utilizing the geometric property and semantic information (network structures, temporal information, and domain knowledge), this work proposes a hierarchical embedding model to embed each region or trajectory as a continuous vector in a semantic vector space. Thereby, the semantic similarity between two regions or trajectories can be measured by computing the Euclidean distance of two vectors directly.
+\item ~~~ A boosted local rank-one matrix approximation (BLOMA) model is proposed. It has three major differences comparing to traditional matrix approximation-based collaborative filtering methods. In BLOMA, the topics of latent factors are more distinct, which makes the recommendation result explainable.
+\end{enumerate}
+
+It is through the experiment results that we demonstrate the effectiveness of our methods, which fill the blank of the related research area.
+\end{Eabstract}
+% \newpage\mbox{}\thispagestyle{empty}\newpage
+% \addtocounter{page}{-1}

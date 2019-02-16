@@ -1,0 +1,136 @@
+% !Mode:: "TeX:UTF-8"
+
+\chapter{相关工作简介}
+\label{chapter:rw}
+
+\section{联合簇的不同形式分类}
+\label{sec:bicluster}
+由于没有一个统一的标准，联合簇在不同双边聚类算法中有着不同的定义，从而有了不同的应用场景。现在来归纳性的总结联合簇的不同模式，详细的归类可以参加这篇综述\citeup{pontes2015biclustering}。
+
+在定义\ref{dingyi:bicluster}中我们已经给出了联合簇的表示方法，即矩阵$B$，$I$和$J$分别为其行、列集合，其可以表示为以下形式：
+\begin{equation*}
+  B = \left(
+    \begin{array}{cccc}
+      b_{11} & b_{12} & \ldots & b_{1|J|} \\
+      b_{21} & b_{22} & \ldots & b_{2|J|} \\
+      \vdots & \vdots & \ddots & \vdots \\
+      b_{|I|1} & b_{|I|2} & \ldots & b_{|I||J|} \\
+    \end{array}
+  \right)
+\end{equation*}
+% \vspace{1mm}
+
+其中$b_{ij}$代表联合簇中第$i$行第$j$列的元素。为方便后面的表达，定义$b_{iJ}$表示矩阵$B$第$i$行的均值，$b_{Ij}$表示第j列的均值，$b_{IJ}$表示整个矩阵$B$的均值。
+
+\subsection{根据联合簇的值进行分类}
+根据联合簇中的值，Kriegel\citeup{kriegel2009clustering}将它们初步分为四种类别。现在分别展开介绍。
+\begin{itemize}
+  \item \textbf{~~常数矩阵模式}：这种情况中联合簇$B$矩阵中所有值均为同一常数：$b_{ij} = \pi$。
+  \item \textbf{~~常数行（列）模式}：联合簇$B$矩阵不再是同一常数，而是其中每一行（每一列）为同一常数。可以认为产生这种情况的原因是在上一种情况：常数矩阵模式中的常数$\pi$上进行以行(列)为单位加上一个常数$\beta$或者乘上一个常数$\alpha$，可以表示成如下形式：
+
+  \begin{itemize}
+    \item[\qquad-] 加常数模式：$b_{ij}=\pi+\beta_i$，或者$b_{ij}=\pi+\beta_j$。
+    \item[\qquad-] 乘常数模式：$b_{ij}=\pi\times\alpha_i$，或者$b_{ij}=\pi\times\alpha_j$。
+  \end{itemize}
+
+  \item \textbf{~~行列耦合模式}：这种情况下的联合簇$B$矩阵同时被行与列影响，同样也分为行影响与列影响。
+    \begin{itemize}
+      \item[\qquad-] 加常数模式：$b_{ij}=\pi+\beta_i+\beta_j$。
+      \item[\qquad-] 乘常数模式：$b_{ij}=\pi\times\alpha_i\times\alpha_j$。
+    \end{itemize}
+  \item \textbf{~~耦合演化模式（Coherent evolutions）}：这是最复杂的一种情况，在这种情况下，联合簇$B$矩阵里的模式不能用常数或者行或列加上、乘以一个常数来刻画，而是用更复杂的关系式来定义。比如不同行或不同列之间线性相关或负线性相关。
+\end{itemize}
+
+需要说明的是，以上几种定义不是互斥的，一个联合簇可能同时满足以上几种关系。这种定义方式是方便的，Aguilar\citeup{aguilar2005shifting}也从另一角度中使用了与此相同定义方法。
+
+\subsection{根据联合簇排列方式进行分类}
+相比起上一种分类方法，现在这种分类方式是从联合簇的排列方式这个角度出发的。这种分类方式直接决定了一个双边聚类算法能够解决问题的种类。几种联合簇的排列方式如下：
+\begin{itemize}
+  \item \textbf{~~行列全覆盖模式}：在整个矩阵$A$中，双边聚类得到的所有联合簇的行（列）集合必须覆盖原来矩阵$A$的所有行（列）。
+  \item \textbf{~~非全覆盖模式}：现在的得到的若干联合簇不必覆盖原矩阵$A$的所有行（列）集合。这种放宽限制的方式使得联合簇的定位更准确。
+  \item \textbf{~~行列互斥模式}：双边聚类得到的联合簇的行（列）集合中，不能出现交集，体现在各个联合簇的子矩阵不能有重叠（Overlapping）部分。
+  \item \textbf{~~非互斥模式}：不要求互斥模式的条件，得到的若干聚类簇的矩阵可以有重叠的部分，在一些特定问题上的解释性更强。
+\end{itemize}
+
+以上就是关于联合簇的概念和分类介绍，接下来我们将简单回顾国内外所有双聚类算法的原理。由于篇幅有限，本文不会设计它们的原理细节，只是将他们进行大概的分类。
+
+\section{双边聚类算法简介}
+\label{sec:algorithms}
+双边聚类这个概念最早是在1972年被J.A.Hartigan\citeup{hartigan1972direct}提出，直到2000年，Cheng\\和Church\citeup{cheng2000biclustering}才正式提出第一个双边聚类算法，其应用就是基因表达数据，直到今天，他们的方法对新理论的提出都有着重要的参考价值。继那之后，双边聚类问题得到了大量的关注，更多优秀的算法随之被发明了出来。
+
+Tanay等人\citeup{tanay2002discovering}证明了双边聚类问题为NP难问题，其复杂度远高于一般的聚类问题，故双边聚类几乎所有方法都是基于启发式搜索的最优化问题。在这些启发式搜索的方法中，合适的代价函数和搜索策略决定了算法的有效性。当然，也有少数方法的思想不是基于这样的启发式搜索，在这些方法里存在着各式各样地的策略和算法概念。接下来就将分别介绍两种思想下的方法体系：
+
+\subsection{基于启发式搜索的双边聚类算法}
+\label{search}
+对于任意NP问题的求解，暴力搜索的的方法是不可取的，否则时间复杂度会随着数据规模的增加而指数或者更快地上升。通常这类问题都会用启发式的搜索来求解，必须有一定的评价指标（evaluation measure）来引导搜索的方向。在双边聚类问题里，不同的启发式算法或基于不同的评价指标作为目标函数，或采取不同的优化方案作为搜索策略。本文列出了几
+种主要的算法类别，并不代表所有的双边聚类算法：
+
+\subsubsection*{(1) 贪心迭代式搜索算法}
+贪心算法的策略即用迭代的方式向最优解逼近，其中每次迭代都取本次的最优解，算法最终在有限时间内结束。最能体现这种思想的就是“同时聚类”思想创始人Hartigan\citeup{hartigan1972direct}提出的直接搜索法（Direct Clustering），其工作原理就是用分治法，将原始矩阵不断分为子矩阵，最终收敛得到联合簇。之后Cheng和Church\citeup{cheng2000biclustering}提出了矩阵的最小平方残差（Mean Squared Residue）作为指标搜索，之后Mukhopad-hyay等人\citeup{mukhopadhyay2009novel}改进MSR 为SMSR(Scaling MSR)后又进行更为深入的研究。Yip等人\citeup{yip2004harp}\\提出了HARP算法，利用RI(relevance idnex)因子对矩阵进行自动的，层次性的搜索。除了普通的贪心迭代式搜索，还有在目标函数中加了随机扰动项的随机迭代式搜索，如Yang等人\citeup{yang2005improved}提出的FLOC算法等。相关算法还有很多，不再列举。
+
+\subsubsection*{(2) 自然仿生式搜索算法}
+自然仿生式的方法的思想都是受一些自然规律启发而发明的，在双边聚类问题中，Bryan等人\citeup{bryan2006application}基于模拟退火\citeup{das2005quantum}的优化方式进行搜索，Liu等人\citeup{liu2009biclustering}基于2011年最火的粒子群优化算法\citeup{kennedy2011particle}，用模拟鸟群和鱼群集群觅食的方式来指导搜索策略。Coelho等人\citeup{coelho2009multi}提出了基于人工免疫系统\citeup{de2002artificial}的算法，利用记忆性来进行搜索。除此之外还有一些基于进化计算的算法，不再列举。
+
+\subsubsection*{(3) 基于传统聚类扩展的算法}
+这一类算法没有从新的角度入手，仍然是从传统聚类的方法，对矩阵的行空间空间进行聚类，但用比较巧妙的方式将列空间也考虑进去，于是形成了联合簇。Cano等人\citeup{cano2007possibilistic}就提出了一种基于奇异值分解（SVD）的方法，给矩阵降维聚类的同时，记录上降维后的特征空间，于是每个降维后的聚类簇都能与其特征空间关联起来形成联合簇。Yan等人\citeup{yang2011finding}对矩阵的两个维度分别进行层次聚类，然后用聚类簇的“稳定性”将它们关联起来，找到聚类簇。
+
+\subsection{非度量式的双边聚类算法}
+\label{nonsearch}
+这里将介绍一些并非基于某评价指标搜索的算法，我们根据算法最核心部分与各个领域的关联将它们分为三类，但这种划分并不互斥，各个算法只是归于我们认为的最相关的部分。
+
+\subsubsection*{(1) 基于图的算法}
+将图论和聚类联系起来的工作，最早起源于2000年Shi等人\citeup{shi2000normalized}的研究，也就是谱聚类的起源文章。基于图的聚类方式将测度空间转换到度量空间，从而巧妙地与图联系起来，进一步将聚类问题转化为图论中的优化问题，使得聚类问题的效率和准确率都大大提高。在双边聚类问题中，Tanay等人\citeup{tanay2002discovering}提出了SAMBA算法，将矩阵的两个维度转换为图的节点，进而将双边聚类转化为二分图划分问题，巧妙地得到了联合簇。而另一算法QUBIC\citeup{li2009qubic}则预先将矩阵化为离散值，得出不同行、列之间的相似度后，用谱聚类思想得到聚类簇。
+
+\subsubsection*{(2) 基于概率论的算法}
+概率论始终是各个领域中不可缺少的一个数学分支，生活中也充满了各种概率问题，事实上，所有事件的发生都是有概率的，围绕着概率的计算可以讨论出很多有趣的问题。在双边聚类中，Lazzeroni和Owen\citeup{lazzeroni2002plaid}提出了plaid算法，其认为一个矩阵为很多联合簇，也就是子矩阵的加权叠加结果，求解联合簇的过程也就是利用约束求解一个“加权拼图”的过程。Sheng等人\citeup{sheng2003biclustering}提出了基于吉布斯采样的求解算法，其利用了一个简单的频率模型来刻画双边聚类，从而找到联合簇。
+
+\subsubsection*{(3) 基于线性代数的算法}
+双边聚类问题的数据是矩阵，其聚类簇为该矩阵的子矩阵，利用线性代数里的方法，可以将矩阵代表的向量空间转化映射到另一个线性空间，使得在映射后的线性空间中找寻聚类簇变得容易。Kluger等人\citeup{kluger2003spectral}提出的谱双边聚类就是典型，虽然数学指导思想不一样，其方法和实质和基于图的算法如出一辙。Carmona-Saez等人\citeup{carmona2006biclustering}提出的非平滑非负矩阵分解(nsNMF)则利用矩阵分解理论，讲原矩阵分解为两个子矩阵，之后分别聚类再关联起来得到聚类簇。
+
+
+\section{同步聚类\Sync{}算法}
+\label{sec:sync}
+自然界的同步（Synchronization）是一个非常神奇的自然规律，很多现象很早就被人们发现，比如蜂群，鱼群的集体移动，鸟类的迁徙等等\citeup{frisch1994social}。早在1665年，伟大的数学家和物理学家，摆钟的发明者Christiaan Huygens\citeup{huygens1966horologium}注意到到了同一个支架上的摆钟的摆动总是完美同步的，对此他解释到这一现象现象可能是空气扰动和支架微小的振动引起的。之后1975年Kuramoto\citeup{kuramoto2012chemical}提出了经典的Kuramoto模型，准确地刻画了同步的物理机制。从此之后，同步便广泛地受到了人们关注，并渐渐成为了物理学、生物学、化学和社会科学的研究热点。
+
+本文提出的双边聚类算法就是基于同步现象的，其理论采用了Shao等人\citeup{shao2011synchronization}提出的的基础聚类算法\Sync{}，在此简单介绍\Sync{}的工作原理。
+
+\vspace{2mm}
+聚类的目的是让相似的点聚到同一个簇中，体现在测度空间中，则是分布在空间中靠的近的点集聚为一起。利用同步思想，\Sync给空间中的点之间引入交互左右，使得每个点对以自己为中心、半径为$\epsilon$内的点有一个引力的作用，引力与距离的关系用$sin(\cdot)$函数来刻画。这样随着时间流逝，引力将使点集产生位移，让靠的近的点集自发聚集为簇。现在给出\Sync算法的几个核心定义：
+
+\begin{dingyi}[点$x$的$\epsilon$邻域邻居]
+\label{dingyi:epsilon_range}
+数据集$\mathcal{D}$中，在测度空间中任意点$x$的$\epsilon$邻域邻居定义如下：
+  \begin{eqnarray}
+    N_\epsilon(x)=\{ y\in\mathcal{D}|dist(y,x)\le\epsilon\}
+  \end{eqnarray}
+其中$dist(y,x)$代表点$y$与$x$间的欧式距离。
+\end{dingyi}
+
+\begin{dingyi}[\Sync动态交互模型]
+\label{dingyi:sync_model}
+令$x\in\mathcal{R}^d$为数据集$\mathcal{D}$中的一个点，$x_i$是点$x$的第$i$维的值。将点$x$视为一个相位振子（phase oscillator），则值$x_i$在$x$的$\epsilon$邻域邻居中的交互模型为：
+  \begin{eqnarray}
+    x_i(t+1)=x_i(t)+\frac{1}{|N_\epsilon(x(t))|}\cdot\sum_{y\in{}N_\epsilon(x(t))}{\hspace{-4mm}\sin(y_i(t)-x_i(t))},
+  \end{eqnarray}
+其中$sin(\cdot)$是耦合函数。$x_i(t+1)$为$t+1$时刻点$x$第$i$维的值。
+\end{dingyi}
+为了刻画整个数据集同步的程度，需要定义一个同步因子$R_c$：
+
+\begin{dingyi}[同步因子]
+\label{dingyi:order_parameter}
+同步因子$R_c$的作用是刻画\sync算法在数据集\\$\mathcal{D}$上的同步程度，从而结束算法迭代程序，其表示为：
+  \begin{eqnarray}
+    R_c=\frac{1}{N}\sum_{i=1}^N{\frac{1}{|N_\epsilon(x)|}\sum_{y\in{}N_\epsilon(x)}\hspace{-4mm}\mathbf{e}^{-||y-x||}}.
+  \end{eqnarray}
+\end{dingyi}
+
+随着\sync的迭代过程，同步因子$R_c(t)$将渐渐收敛至$1$，算法也就结束，此时点集已经自动聚类为簇，如图\ref{sync}(c)所示。
+
+\pic[!htb]{\sync算法聚类示意图 (a) 数据集的初始状态，黑色箭头代表点与点之间的相互交互作用，红色箭头代表点进行位移的方向。(b) \sync算法进行一段后与初态的对比图，红色部分为新的状态图。(c) 算法收敛后的最终状态，图中包含聚类簇$C_1$和$C_2$和若干离群点。（来源：Synchronization Inspired Data Mining\citeup{shao2011synchronization}）}{width=140mm}{sync}
+
+\sync算法作为一种动态的基础聚类算法，能巧妙地抓住了数据内在结构从而自动得到良好的聚类簇结果，说明了同步思想应用在聚类问题中的有效性。
+
+\section{本章小结}
+本章介绍了双边聚类中联合簇的各种类别，可以按照联合簇矩阵中的值或者排列方式划分。之后按是否用评价指标进行启发式搜索，将国际上比较有影响力的数十种双边聚类算法化为两类，每类中的算法按照核心思想进一步归类，对每一个子类的若干算法都进行了介绍。最后，介绍了本文引用聚类模型\Sync算法的核心概念。接下来我们将介绍本文中心工作：基于\Sync模型的双边算法\cosync。
+
+\newpage\mbox{}\thispagestyle{empty}\newpage

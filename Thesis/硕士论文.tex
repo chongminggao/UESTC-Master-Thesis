@@ -1,0 +1,33 @@
+% !Mode:: "TeX:UTF-8"
+
+\documentclass[master]{uestcthesis}
+\usepackage{IEEEtrantools}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\title{轨迹语义表征与地点推荐研究}
+\author{高崇铭}
+\date{2019}{2}{14}
+\begin{document}
+\newcommand{\red}[1]{{\textcolor{red}{{} #1}}}
+\newcommand{\ud}{\,\mathrm{d}}
+\newcommand{\bt}{\vrule width 0.85pt}
+\newcommand{\CoSync}{CoSync}
+\newcommand{\Sync}{Sync}
+\newcommand{\cosync}{CoSync}
+\newcommand{\sync}{Sync}
+\makeatletter
+\def\hlinew#1{%
+  \noalign{\ifnum0=`}\fi\hrule \@height #1 \futurelet
+   \reserved@a\@xhline}
+
+\include{chapters/ChapterA}
+\include{chapters/ChapterB}
+% \include{chapters/ChapterC}
+% \include{chapters/ChapterD}
+% \include{chapters/ChapterE}
+\end{document}
+
+
+

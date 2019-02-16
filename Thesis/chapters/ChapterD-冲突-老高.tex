@@ -1,0 +1,60 @@
+% !Mode:: "TeX:UTF-8"
+
+\chapter{实验设计,算法实现与评估}
+\label{chapter:experiment}
+\section{实验设计思想}
+\label{sec:experiment}
+本章中将设计实验对\cosync算法进行检验。首先我们将设计合适的人工数据集，并预先设置评价指标来衡量算法结果的好坏。之后我们将针对现实中的数据集，找寻合适可行的、流行的的数据集进行我们的实验。为了说明\cosync算法的高效和优秀，我们将采用国际上一些有影响力的双边聚类算法进行对比实验。我们选取了可获取程序的几个算法，包括：ITCC\cite{dhillon2003information}，MSSRCC\cite{cho2008coclustering}，Spectral Clustering\cite{kluger2003spectral}，Plaid\cite{lazzeroni2002plaid}。
+
+在\ref{sec:artificial}节中，我们将详述怎么用高斯分布与随机分布构造人工数据集，并给出实验的结果与评估，之后与上述的几个算法进行性能对比；在\ref{sec:gene}节中，我们将用基因表达数据来检测\cosync算法的性能，以及评价在生物信息学中联合簇是否显著的统计结果。由于联合簇在基因数据集上的生物学解释需要专家来评估，不可简单根据显著统计量的大小进行对比，故在真实数据上我们仅给出\cosync算法的运行结果。
+
+\vspace{2mm}
+针对\cosync算法的特性，本文实验的数据集选取需要遵循以下几个原则：
+\begin{enumerate}
+\item \textbf{规模适中}：用于实验的数据集矩阵维度应控制在$(50\times50)\sim(1000\times1000)$的范围内。若矩阵选取过小，则体现不出算法的功能和效率；若过大则不能在短时间内得出结果，并且给结果评价带来困难。
+\item \textbf{维度比例适中}：实验矩阵的行、列数目比例应倾向于$1:1$（方阵）。若比例过于失衡，则维度的差异将给双边交互模型带来较大误差。
+\item \textbf{取值归一化}：由于\cosync的交互模型中存在$\sin(\cdot)$函数，故要求数据矩阵中的值的取值范围为$(-\frac{\pi}{2},\frac{\pi}{2})$。为了说明方便及后续结果的可扩展性，我们按照$L2$归一化的方式将矩阵取值控制在$(0,\frac{\pi}{2})$。
+\item \textbf{易于可视化}：人工数据集的联合簇空间分布应易于可视化，即应该使同一联合簇的元素在原数据矩阵中连续分布，为了方便说明，我们将尽量使联合簇连续分布在原矩阵左上角的子区域内。真实数据集没有这一要求。
+\end{enumerate}
+
+\vspace{2mm}
+此处给出本文实验平台环境：\cosync算法的实现语言为Java和Matlab，所有实验均在同一台PC机上完成，运行机器CPU主频2.3GHz，内存8.0GB。
+
+\section{评价指标建立}
+\label{subsec:evaluation}
+在信息检索和统计学分类问题中，用来衡量机器学习相关算法结果质量好坏的统计量很多，常见的有互信息(MI)\footnote{\url{https://en.wikipedia.org/wiki/Mutual_information}}、混淆矩阵(Confusion Matrix)\footnote{\url{https://en.wikipedia.org/wiki/Confusion_matrix}}还有精确率与召回率(Precision and Recall)\footnote{\url{https://en.wikipedia.org/wiki/Precision_and_recall}}等。在本文中我们将用精确率与召回率来刻画结果的好坏。
+
+令在本次实验中对于任意一个联合簇矩阵$B$，用\cosync算法找出的子矩阵为$\hat{B}$，关于矩阵$B$精确率和召回率的概念如下：
+\begin{description}
+\item[精确率]：对于矩阵$\hat{B}$中元素，存在于真实联合簇$B$中的比率，即：
+\begin{equation}
+precision = \frac{\{b\big{|}b\in{}B,b\in{}\hat{B}\}}{\{b\big{|}b\in{}B\}}
+\end{equation}
+\item[召回率]：对于真实联合簇$B$中的元素，存在于矩阵$\hat{B}$中的比例，即：
+\begin{equation}
+recall = \frac{\{\hat{b}\big{|}\hat{b}\in{}B,\hat{b}\in{}\hat{B}\}}{\{\hat{b}\big{|}\hat{b}\in{}\hat{B}\}}
+\end{equation}
+\end{description}
+
+本文中精确率和召回率都将被用于人工数据和基因数据集样本集的算法评测中。但由于真实世界中基因没有明确的簇标签，故不能用此方法来进行评价。在第\ref{sec:gene}节中我们将会介绍如何用生物学中的显著性来对联合簇中基因集进行评测。
+
+\section{人工数据集上的实验设计与实现}
+\label{sec:artificial}
+\subsection{人工数据集构造}
+\label{subsec:construct}
+为了测试及证明\cosync算法的有效性与正确性，我们现在构造带有噪声的人工数据集来进行测试。遵循上一小节所述的数据集需满足的条件，这里我们将说明我们的构造方法。
+
+
+数据矩阵中除去联合簇的部分取为均匀分布$U(0,\frac{\pi}{2})$，代表无意义的噪声。联合簇部分用高斯分布$N(\mu,\sigma)$来模拟。对于取值为$c(0\le{}c\le\frac{\pi}{2})$的联合簇，则高斯分布的均值取值$\mu$取为$\mu=c$。根据$3\sigma$原则
+\footnote{\url{https://en.wikipedia.org/wiki/68\%E2\%80\%9395\%E2\%80\%9399.7_rule}}
+，一个联合簇中$68\%$的数据将会落在$(\mu-\sigma,\mu+\sigma)$的范围内，$95\%$的数据将会落在$(\mu-2\sigma,\mu+2\sigma)$的范围内，考虑到整个数据集的取值范围是$(0,\frac{\pi}{2})$，我们将$\sigma$的取值固定在$\sigma=0.1$。关于数据集的具体构造将在后面下一小节给出。
+
+
+
+\subsection{实验结果与评估}
+\label{subsec:artificial}
+
+\section{基因表达数据上的算法实现及评估}
+\label{sec:gene}
+\section{本章小结}
+
