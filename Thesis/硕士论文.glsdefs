@@ -1,0 +1,330 @@
+\ifglsentryexists{pi}{}%
+{%
+\gls@defglossaryentry{pi}%
+{%
+name={$\eta $},%
+sort={pi},%
+type={main},%
+first={$\eta $},%
+firstplural={$\eta $s},%
+text={$\eta $},%
+plural={$\eta $s},%
+description={圆周率符号},%
+descriptionplural={圆周率符号},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{T}{}%
+{%
+\gls@defglossaryentry{T}%
+{%
+name={$T$},%
+sort={$T$},%
+type={main},%
+first={$T$},%
+firstplural={$T$s},%
+text={$T$},%
+plural={$T$s},%
+description={轨迹},%
+descriptionplural={轨迹},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{P}{}%
+{%
+\gls@defglossaryentry{P}%
+{%
+name={$P$},%
+sort={$P$},%
+type={main},%
+first={$P$},%
+firstplural={$P$s},%
+text={$P$},%
+plural={$P$s},%
+description={GPS点},%
+descriptionplural={GPS点},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{T_set}{}%
+{%
+\gls@defglossaryentry{T_set}%
+{%
+name={$\mathcal {T}$},%
+sort={$\mathcal {T}$},%
+type={main},%
+first={$\protect \mathcal {T}$},%
+firstplural={$\protect \mathcal {T}$s},%
+text={$\protect \mathcal {T}$},%
+plural={$\protect \mathcal {T}$s},%
+description={轨迹集合},%
+descriptionplural={轨迹集合},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{P_set}{}%
+{%
+\gls@defglossaryentry{P_set}%
+{%
+name={$\mathcal {P}$},%
+sort={$\mathcal {P}$},%
+type={main},%
+first={$\protect \mathcal {P}$},%
+firstplural={$\protect \mathcal {P}$s},%
+text={$\protect \mathcal {P}$},%
+plural={$\protect \mathcal {P}$s},%
+description={GPS点集合},%
+descriptionplural={GPS点集合},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{E_set}{}%
+{%
+\gls@defglossaryentry{E_set}%
+{%
+name={$\mathcal {E}$},%
+sort={$\mathcal {E}$},%
+type={main},%
+first={$\protect \mathcal {E}$},%
+firstplural={$\protect \mathcal {E}$s},%
+text={$\protect \mathcal {E}$},%
+plural={$\protect \mathcal {E}$s},%
+description={边集合},%
+descriptionplural={边集合},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{zeta}{}%
+{%
+\gls@defglossaryentry{zeta}%
+{%
+name={$\zeta $},%
+sort={$\zeta $},%
+type={main},%
+first={$\zeta $},%
+firstplural={$\zeta $s},%
+text={$\zeta $},%
+plural={$\zeta $s},%
+description={表示误差},%
+descriptionplural={表示误差},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{epsilon}{}%
+{%
+\gls@defglossaryentry{epsilon}%
+{%
+name={$\epsilon $},%
+sort={$\epsilon $},%
+type={main},%
+first={$\epsilon $},%
+firstplural={$\epsilon $s},%
+text={$\epsilon $},%
+plural={$\epsilon $s},%
+description={同步算法的交互半径},%
+descriptionplural={同步算法的交互半径},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{R}{}%
+{%
+\gls@defglossaryentry{R}%
+{%
+name={$R$},%
+sort={$R$},%
+type={main},%
+first={$R$},%
+firstplural={$R$s},%
+text={$R$},%
+plural={$R$s},%
+description={用户——商品评分矩阵},%
+descriptionplural={用户——商品评分矩阵},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{U}{}%
+{%
+\gls@defglossaryentry{U}%
+{%
+name={$U$},%
+sort={$U$},%
+type={main},%
+first={$U$},%
+firstplural={$U$s},%
+text={$U$},%
+plural={$U$s},%
+description={用户——隐因子矩阵},%
+descriptionplural={用户——隐因子矩阵},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{V}{}%
+{%
+\gls@defglossaryentry{V}%
+{%
+name={$V$},%
+sort={$V$},%
+type={main},%
+first={$V$},%
+firstplural={$V$s},%
+text={$V$},%
+plural={$V$s},%
+description={隐因子——商品矩阵},%
+descriptionplural={隐因子——商品矩阵},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
