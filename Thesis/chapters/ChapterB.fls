@@ -1,11 +1,6 @@
-PWD E:/jianguoyun/GradulationWork/template/chapters
-INPUT c:/texlive/2015/texmf.cnf
-INPUT c:/texlive/2015/texmf-dist/web2c/texmf.cnf
-INPUT c:/texlive/2015/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT ./ChapterB.tex
+PWD /Users/chongming/Nutstore Files/我的坚果云/UESTC-Master-Thesis/Thesis/chapters
+INPUT /usr/local/texlive/2018/texmf.cnf
+INPUT /usr/local/texlive/2018/texmf-dist/web2c/texmf.cnf
+INPUT /usr/local/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT ChapterB.tex
 OUTPUT ChapterB.log
-INPUT c:/texlive/2015/texmf-dist/fonts/map/fontname/texfonts.map
-INPUT c:/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
-INPUT c:/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmti10.tfm
-INPUT c:/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmbx7.tfm
-INPUT c:/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmbx5.tfm
