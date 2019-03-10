@@ -148,6 +148,36 @@ parent={},%
 %
 }%
 }%
+\ifglsentryexists{V_set}{}%
+{%
+\gls@defglossaryentry{V_set}%
+{%
+name={$\mathcal {V}$},%
+sort={$\mathcal {V}$},%
+type={main},%
+first={$\protect \mathcal {V}$},%
+firstplural={$\protect \mathcal {V}$s},%
+text={$\protect \mathcal {V}$},%
+plural={$\protect \mathcal {V}$s},%
+description={网络节点集合},%
+descriptionplural={网络节点集合},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
 \ifglsentryexists{E_set}{}%
 {%
 \gls@defglossaryentry{E_set}%
@@ -268,6 +298,36 @@ parent={},%
 %
 }%
 }%
+\ifglsentryexists{R_k}{}%
+{%
+\gls@defglossaryentry{R_k}%
+{%
+name={$R^{(k)}$},%
+sort={$R^{(k)}$},%
+type={main},%
+first={$R^{(k)}$},%
+firstplural={$R^{(k)}$s},%
+text={$R^{(k)}$},%
+plural={$R^{(k)}$s},%
+description={残差矩阵},%
+descriptionplural={残差矩阵},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
 \ifglsentryexists{U}{}%
 {%
 \gls@defglossaryentry{U}%
@@ -309,6 +369,36 @@ first={$V$},%
 firstplural={$V$s},%
 text={$V$},%
 plural={$V$s},%
+description={隐因子——商品矩阵},%
+descriptionplural={隐因子——商品矩阵},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{G}{}%
+{%
+\gls@defglossaryentry{G}%
+{%
+name={$G$},%
+sort={$G$},%
+type={main},%
+first={$G$},%
+firstplural={$G$s},%
+text={$G$},%
+plural={$G$s},%
 description={隐因子——商品矩阵},%
 descriptionplural={隐因子——商品矩阵},%
 symbol={\relax },%

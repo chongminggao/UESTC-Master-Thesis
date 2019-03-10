@@ -1,416 +1,428 @@
 % !Mode:: "TeX:UTF-8"
 
-\chapter{实验设计,算法实现与评估}
-\label{chapter:experiment}
-\section{实验设计介绍}
-\label{sec:experiment}
-本章中将设计实验对\cosync算法进行检验。首先我们将设计合适的人工数据集，并预先设置评价指标来衡量算法结果的好坏。之后我们将针对现实中的数据集，找寻合适可行的、流行的的数据集进行我们的实验。为了说明\cosync算法的高效和优秀，我们将采用国际上一些有影响力的双边聚类算法进行对比实验。我们选取了可获取程序的几个算法，包括：ITCC\citeup{dhillon2003information}，MSSRCC\citeup{cho2008coclustering}，Spectral Clustering\citeup{kluger2003spectral}，Plaid\citeup{lazzeroni2002plaid}。
+\chapter{分布式轨迹语义表征}
+\label{chapter:main2}
+\section{全新轨迹表征的动机与解决思路}
+如上文所述，传统的轨迹挖掘算法汇总，轨迹通常有三种表征方式：基于采样点的表征、基于线段的表征以及基于特征的表征。然而这三种表征方式在现在的挖掘需求中都有不足：主要关注地理信息，几乎没有考虑具体的语义知识。因此，在表征上建立的索引系统将给后续挖掘任务带来很多限制。
 
-在\ref{sec:artificial}节中，我们将详述怎么用高斯分布与随机分布构造人工数据集，并给出实验的结果与评估，之后与上述的几个算法进行性能对比；在\ref{sec:gene}节中，我们将用基因表达数据来检测\cosync算法的性能，以及评价在生物信息学中联合簇是否显著的统计结果。由于联合簇在基因数据集上关于基因集没有先验标签，其生物学解释需要用有效性检验的专家知识来评估，不同算法找出的不同簇之间无法直接对比，故在真实数据上我们仅给出\cosync算法的运行结果。
+为了衡量语义相似性，应该为轨迹数据创造一种新的表征，并在这种表征上定义新的轨迹相似性度量标准。举一个例子，图\ref{fig:introduction}(a)显示了葡萄牙波尔图的三个出租车轨迹（即$ T_1, T_2$和$T_3 $）。 如果我们只考虑三个轨迹的几何属性，$ T_1 $和$ T_2 $之间的相似性高于$ T_2 $和$ T_3 $之间的相似性。但是，通过考虑城市的交通系统（即结构信息）和区域功能（即领域知识）， 由于这两条轨迹都表明了从农村地区到市中心的高速公路运输，而$T_1$意味着从机场到海滨地区的国家公路，则可以得出$ T_2 $更类似于$ T_3 $的结论（图\ref{fig:introduction}(b)）
 
-此处给出本文实验平台环境：\cosync算法的实现语言为Java和Matlab，所有实验均在同一台PC机上完成，运行机器CPU主频2.3GHz，内存8.0GB。
+在本章中，在上一章节\Cascade算法的输出的多层次ROI网络的基础上，我们利用网络的拓普信息、轨迹的时间信息以及其他的领域知识，用一个层次嵌入模型将ROI网络上的节点嵌入到一个隐空间中，使之有定长的表征。这个过程展现在图\ref{fig:introduction}(c)中。在该表征基础上，语义检索任务可以被铸造为通过简单地计算两个向量之间的欧几里德距离来搜索最相似的向量到目标向量的问题。
 
-\subsection{数据集的选取与处理}
-\label{subsec:principle}
-针对\cosync算法的特性和适用条件，本文实验中人工数据集的设计以及真实数据集的选取需要尽量遵循以下几个原则：
-\begin{enumerate}
-\item \textbf{数据稠密无空值}：对于大多数双边聚类问题，空值的存在将会使得相似性度量失去意义，故本次实验的数据集将严格遵循无空值这一条件。
-\item \textbf{规模适中}：用于实验的数据集矩阵维度应控制在$(50\times50)\sim(1000\times1000)$的范围内。若矩阵选取过小，则体现不出算法的功能和效率；若过大则不能在短时间内得出结果，并且给结果评价带来困难。
-\item \textbf{维度比例适中}：实验矩阵的行、列数目比例应倾向于$1:1$（方阵）。若比例过于失衡，则维度的差异将给双边交互模型带来较大误差。
-\item \textbf{取值归一化}：由于\cosync的交互模型中存在$sin(\cdot)$函数，故要求数据矩阵中的值的取值范围为$(-\frac{\pi}{2},\frac{\pi}{2})$。为了说明方便及后续结果的可扩展性，我们按照$L2$归一化的方式将矩阵取值控制在$(0,\frac{\pi}{2})$。
-\item \textbf{易于可视化}：人工数据集的联合簇空间分布应易于可视化，即应该使同一联合簇的元素在原数据矩阵中连续分布，为了方便说明，我们将尽量使联合簇连续分布在原矩阵左上角的子区域内。真实数据集没有这一要求。
-\end{enumerate}
-
-\vspace{2mm}
-以上几条原则都是我们建议的方案，适用与\cosync算法工作的方案，对于不满足以上原则的数据集，算法结果可能将受到影响。本文人工数据集的设计按照上述方案进行设计，而真实数据集只能尽量满足以上原则。比如在文本数据、购物篮数据和基因表达数据中只有基因表达数据符合稠密性，但基因表达数据难以满足规模适中、比例适中的条件。
-
-
-\subsection{评价指标建立}
-\label{subsec:evaluation}
-在信息检索和统计学分类问题中，用来衡量机器学习相关算法结果质量好坏的统计量很多，常见的有互信息（MI）\footnote{\url{https://en.wikipedia.org/wiki/Mutual_information}}、混淆矩阵（Confusion Matrix）\footnote{\url{https://en.wikipedia.org/wiki/Confusion_matrix}}还有精确率与召回率（Precision and Recall）\footnote{\url{https://en.wikipedia.org/wiki/Precision_and_recall}}等。在本文中我们将用精确率与召回率来刻画结果的好坏。
-
-令在本次实验中对于任意一个联合簇矩阵$B$，用\cosync算法找出的子矩阵为$\hat{B}$，关于矩阵$B$精确率和召回率的概念定义如下：
-\begin{description}
-\item[精确率]：对于矩阵$\hat{B}$中元素，存在于真实联合簇$B$中的比率，即：
-\begin{equation}
-precision = \frac{\{b\big{|}b\in{}B,b\in{}\hat{B}\}}{\{b\big{|}b\in{}B\}}
-\end{equation}
-\item[召回率]：对于真实联合簇$B$中的元素，存在于矩阵$\hat{B}$中的比例，即：
-\begin{equation}
-recall = \frac{\{\hat{b}\big{|}\hat{b}\in{}B,\hat{b}\in{}\hat{B}\}}{\{\hat{b}\big{|}\hat{b}\in{}\hat{B}\}}
-\end{equation}
-\end{description}
-
-本文中精确率和召回率都将被用于人工数据和基因数据集样本集的算法评测中。但由于真实世界中基因没有明确的簇标签，故不能用此方法来进行评价。在第\ref{sec:gene}节中我们将会介绍如何用生物学中的显著性来对联合簇中基因集进行评测。
-
-\section{人工数据集上的实验设计与实现}
-\label{sec:artificial}
-\vspace{-2mm}
-在本节中我们将首先说明数据集的构造方法，以简单的数据集来证明\cosync算法的工作原理，接着我们将\cosync和其他算法进行相比，得出结论。
-
-\subsection{人工数据集构造}
-\label{subsec:construct}
-为了测试及证明\cosync算法的有效性与正确性，我们现在构造带有噪声的人工数据集来进行测试。遵循上一小节所述的数据集需满足的条件，这里我们将说明我们的构造方法。
-
-
-数据矩阵中除去联合簇的部分取为均匀分布$U(0,\frac{\pi}{2})$，代表无意义的噪声。联合簇部分用高斯分布$N(\mu,\sigma)$来模拟。对于取值为$c(0\le{}c\le\frac{\pi}{2})$的联合簇，则高斯分布的均值取值$\mu$取为$\mu=c$。根据$3\sigma$原则
-\footnote{\url{https://en.wikipedia.org/wiki/68\%E2\%80\%9395\%E2\%80\%9399.7_rule}}
-，一个联合簇中$68\%$的数据将会落在$(\mu-\sigma,\mu+\sigma)$的范围内，$95\%$的数据将会落在$(\mu-2\sigma,\mu+2\sigma)$的范围内，考虑到整个数据集的取值范围是$(0,\frac{\pi}{2})$，我们将$\sigma$的取值固定在$\sigma=0.1$。关于数据集的具体构造参数将在后面下一小节给出。
-
-\subsection{算法概念证明}
-\label{subsec:artificial}
-首先我们将设计实验揭示\cosync的工作原理，观察其工作流程。我们用上一节的构造方法，取矩阵$A$尺寸为$(100\times100)$，其中包含两个联合簇，其数据分别从高斯分布$N(1.2,0.1)$和$N(0.5,0.1)$中抽样，其余部分将从均匀分布$U(0,\frac{\pi}{2})$中抽样。矩阵$A$的可视化结果如图\ref{fig:simulation}(a)所示。
-
-\vspace{2mm}
-\tabcolsep=1pt
-\begin{figure*}[!htb]
+\tabcolsep=0.5pt
+\begin{figure}[!htb]
 \centering
-\begin{tabular}{cccc}
-\includegraphics[width=36mm]{ori}&
-\includegraphics[width=36mm]{lp1}&
-\includegraphics[width=36mm]{lp5}&
-\includegraphics[width=36mm]{lp50}\\
-(a) 原始矩阵 & (b) T = 1 & (c) T = 5 & (d) T = 30
+\begin{tabular}{cc}
+\includegraphics[width=50mm]{pics/introduction1.pdf} & \includegraphics[width=50mm]{pics/introduction2_w.pdf}\\
+\multicolumn{2}{c}{\includegraphics[width=100mm]{pics/introduction.pdf}}
 \end{tabular}
-\caption{\cosync算法动态双边交互过程图。 (a)原始矩阵及包含在其中的两个联合簇。(b)-(c)动态交互在的过程，可以看出联合簇中的值随着时间渐渐同步。(d)算法收敛的同步矩阵，可以看到两个嵌入的聚类簇被完美地发掘出来。}
-\label{fig:simulation}
-\end{figure*}
+% \vspace{-2mm}
+\caption {轨迹分布式语义表征示意图 (a)葡萄牙波尔图市的三条出租车轨迹。 (b) 三条轨迹被\Cascade转换为了ROI序列的表示。 (c) 将地理序列表示转换为分布式向量表征。}
+% \vspace{-3mm}
+\label{fig:introduction}
+\end{figure}
 
-可以看出图中两个联合簇的轮廓，需要注意的是，产生这种可见“轮廓”的原因是为了可视化方便而设置的，当矩阵的行、列顺序被打乱后，联合簇将无法被肉眼识别出来，但行、列顺序并不影响\cosync算法的工作。
+
+\section{ROI网络上分布式轨迹语义嵌入模型}
+在上一章的\Cascade算法作用在轨迹数据集上，提取出分层ROI网络之后，每条轨迹将被表征为网络的每个层上的ROI序列。受自然语言处理（NLP）中的词嵌入方案的启发，我们提出了一种嵌入模型，用于进一步将ROI和轨迹转换为语义空间中的连续向量，从而揭示轨迹数据中隐藏的语义信息。
+
+\subsection{单层语义ROI嵌入模型}
+嵌入模型的关键是选择给定对象的邻域或上下文，以便可以获得对象之间的关系或者相似度。因此，我们从两个方面考虑ROI的嵌入邻居：几何邻居和语义邻居。
 
 \vspace{2mm}
-图\ref{fig:simulation}(b)-(d)展示了\cosync算法的工作流程。$T$代表双边交互模型的迭代次数，可见在$T=5$次迭代处，联合簇的轮廓就已经逐渐清晰。往后的迭代中，收敛速度逐渐变慢，直到进行到30次，同步因子的改变量小于一定阈值，停止迭代得到收敛的同步矩阵。原始的两个联合簇都被完整地挖掘出来。图\ref{RC}展示了这一过程中同步因子$r$的收敛过程。
+\textbf{几何邻居：}给定一个ROI，其几何邻居是围绕该ROI的在ROI网络被轨迹以$W$跳能连接起来的其他ROI。 图\ref{fig:context}用$W =2$的几何邻居来作为展示，被绘作绿色和蓝色圆圈。例如，${ROI}_k $是$ {ROI} _i $的几何邻域之一。
+
 \vspace{2mm}
-\pic[htb]{同步因子随时间收敛图}{width=80mm}{RC}
-
-从图中可以看到同步因子将收敛于$1$，且其收敛的速度初始很快，随着迭代的进行越来越缓慢，形成一个平稳的曲线。
-
-受限于篇幅的原因，关于更多\cosync在人工数据集上的结果被置于附录中。从这些实验中我们可以得出结论，\cosync算法对于原始矩阵中嵌入的少量大尺寸联合簇的挖掘结果表现良好，受动态同步的思想驱动，嵌入在数据集中的联合簇都被自然地挖掘了出来，且对参数的上下浮动的敏感性较低，具有不错的鲁棒性。但是若在数据集中嵌入的联合簇的分布复杂，且尺寸小数量多的情况下，则受限于相似性度量难以有效发挥作用，不能很好地同步在一起。
-
-\subsection{\cosync与其他算法的性能比较}
-\label{subsec:compare}
-为了证明我们的算法相对于与其他算法的优势，说明\cosync算法能挖掘出任意排列方式的联合簇，我们设计了两个代表性的$(1000\times1000)$的中大型数据矩阵。其中一个矩阵中的联合簇将以棋盘（checkboard）的方式分布，如图\ref{fig:yiqi}(a)所示；而另一个矩阵中的联合簇位置分布任意，如图\ref{fig:yiqi}(c)所示。图中矩阵里嵌入的颜色深浅不一的子矩阵从均值不一的高斯分布$N(\mu,\sigma)$中采样得到。为了消除行、列的排序对算法性能的影响，图\ref{fig:yiqi}(b)和(d)是棋盘分布矩阵和随机分布矩阵行列顺序打散后的结果。所有的实验都将在乱序上的矩阵上进行。
-
-接着我们将分别在这两个数据矩阵上，用\cosync，ITCC，MSSRCC，Spectral Clustering，Plaid进行测试。国际上很多主流算法由于自身局限性，对数据矩阵有较强的假设：联合簇的分布为棋盘式的，比如本次进行试验的ITCC，MSSRCC和\\Spectral CLustering算法。在这样的假设下，这些算法将分别对行、列空间进行聚类，最后把同一个簇的行列集合放到一起形成子矩阵。此外除\cosync外的四种算法都需要指定双边聚类的行、列各自划分的数目，相当于一个先验参数。下面是两个数据集分别的实验结果：
-
-\vspace{4mm}
-\tabcolsep=2pt
-\begin{figure*}[!htb]
-\centering
-\begin{tabular}{cccc}
-\includegraphics[width=36mm]{O1}&
-\includegraphics[width=36mm]{S1}&
-\includegraphics[width=36mm]{O2}&
-\includegraphics[width=36mm]{S1}\\
-(a)棋盘分布矩阵  & (b)棋盘分布行列打散 &(c)随机分布 &(d)随机分布行列打散
-\end{tabular}
-\caption{棋盘分布矩阵及行列顺序打散矩阵图}
-\label{fig:yiqi}
-\end{figure*}
-
-\vspace{3mm}
-\textbf{棋盘分布下的算法比较}：
-在本实验中，首先针对ITCC，MSSRCC和Spectral CLustering算法的特性，对棋盘式分布的矩阵进行测试。实验矩阵尺寸为$(1000\times1000)$，嵌入了6个从均值不同的高斯分布$N(\mu,\sigma)$中抽样的联合簇，其可视化图行列打散的的矩阵如图\ref{fig:yiqi}(a)-(b)所示。由于数据集的分布为棋盘分布，故行、列的划分数目很好确定，分别为$4$与$3$。
-
-在5种算法完成测试后，各自得到输出的代表联合簇的行、列集合。我们对它们进行排序整理，重新规划为易于观察的矩阵，其可视化结果如图\ref{fig:yiqi_r}(b)-(f)所示。
-
-图中红色方框为结果中识别出的聚类簇。可见只有\cosync和Plaid算法能够识别分散在矩阵中的聚类簇，其他三种对聚类簇的识别都是基于全局划分的。在图\ref{fig:yiqi_r}(b)中，可见\cosync算法分毫不差地挖掘出嵌入原始矩阵的6个联合簇，做到了识别度$100\%$；而在图\ref{fig:yiqi_r}(f)中，Plaid模型识别出了6个聚类簇中的4个，识别度为$66.6\%$。ITCC、MSSRCC与Spectral Clustering算法用划分的方式将原矩阵划分为$4\times3=12$块，图\ref{fig:yiqi_r}(c),(e)中ITCC和Spectral Clustering的12块子矩阵中成功地包括了嵌入的6块联合簇，而图\ref{fig:yiqi_r}(d)中的MSSRCC算法的划分没有成功地圈出联合簇。
-
-总体来看，在这个实验集上，\cosync表现出了良好的特性，甚至胜出了专为棋盘式数据设计的ITCC，MSSRCC和Spectral Clustering算法。
-
-\vspace{3mm}
-\textbf{随机分布下的算法比较}：
-在现实数据中，联合簇的嵌入不可能按照棋盘式方式规律分布，其分布是无规律而杂乱的。我们在本次实验中模拟了这种情况，将4个大小、尺寸不一致的联合簇随机嵌入$(1000\times1000)$的矩阵中，注意联合簇间不能互相遮挡重叠。其可视化图行列打散的的矩阵如图\ref{fig:yiqi}(c)-(d)所示。
-
-同样地，5种算法在该数据集上运行完毕后，我们对各自输出的结果矩阵行列顺序整理重排，其可视化结果如图\ref{fig:yiqi_r}(h)-(l)所示。从结果中可以看出，\cosync算法依然准确地识别出了4个嵌入的联合簇，而Plaid算法仅识别出了1个联合簇。值得注意的是，在图\ref{fig:yiqi_r}(i)-(k)中的ITCC，MSSRCC和Spectral Clustering三种基于划分的方法此时已经失去效果。ITCC和Spectral Clustering仅划分出了一个联合簇。但由于受于方法本身的限制，它的划分不能将其余联合簇划分出来。MSSRCC则没有划分到正确的聚类簇。
-
-在这次的比较中，\cosync发挥了其优势：能处理以任何分布方式的聚类簇，且发掘效果显著，胜出了其余几种代表性方法。
-
-\subsection{人工数据集测试小结}
-我们在本节的人工数据集测试中，首先用比较简单的$(100\times100)$数据集证明了\cosync算法的可行性，并作出数据集在同步过程中的变化图。接下来，在联合簇以棋盘方式和任意方式分布中大规模的$(1000\times1000)$数据集上，我们将\cosync算法和国际上比较有代表性的双边聚类算法ITCC，MSSRCC，Spectral Clustering和\\Plaid算法进行比较。两个的比较的结果中，\cosync都成功地识别出了矩阵中嵌入的所有联合簇，而其他算法都没有做到这一程度，这充分显现了\cosync算法在这一类数据集上的优势。总体来看，本次实验展示了\cosync算法的高效性和能抓住数据集本质结构的特性。
+\textbf{语义邻居：} 由于ROI不仅仅是网络上的节点，它还代表了一个富含各种语义信息的区域。 为了对丰富的语义进行编码，我们从以下角度定义给定ROI的语义邻域：
 
 \tabcolsep=1pt
-\begin{figure*}[!p]
+\begin{figure*}[!t]
 \centering
-\begin{tabular}{ccc}
-\includegraphics[width=45mm]{O1}&
-\includegraphics[width=45mm]{syn1R}&
-\includegraphics[width=45mm]{inf1}\\
-(a) 棋盘分布矩阵  & (b) CoSync &  (c) ITCC\\
-\includegraphics[width=45mm]{residue1}&
-\includegraphics[width=45mm]{spectral1}&
-\includegraphics[width=45mm]{plaid1}\\
-(d) MSSRCC &  (e)  Spectral &  (f) Plaid\\
-\includegraphics[width=45mm]{O2}&
-\includegraphics[width=45mm]{syn2R}&
-\includegraphics[width=45mm]{inf2}\\
-(g) 随机分布矩阵  & (h) CoSync &  (i) ITCC\\
-\includegraphics[width=45mm]{residue2}&
-\includegraphics[width=45mm]{spectral2}&
-\includegraphics[width=45mm]{plaid2}\\
-(j) MSSRCC &  (k)  Spectral &  (l) Plaid
-\end{tabular}
-\caption{五种算法在棋盘分布矩阵和随机分布矩阵上运行结果图。(a)为棋盘分布原矩阵。(b)-(f)为五种算法在棋盘分布矩阵上的聚类结果可视化。(g)为随机分布原矩阵。(h)-(l)是五种算法在随机分布矩阵上的聚类结果可视化。
-图中红色方框为算法找出的聚类簇。}
-\label{fig:yiqi_r}
+\includegraphics[width=130mm]{pics/embedding.pdf}
+\caption {ROI两种邻居示意图。}
+% \vspace{-4mm}
+\label{fig:context}
 \end{figure*}
-% \pagenumbering{}
+
+\begin{itemize}
+\item \textbf{网络拓扑属性。} 多层次ROI网络是轨迹数据的一种紧凑表示，从中可以提取城市交通网络的结构状况的统计信息。 具体地，ROI的节点权重是该ROI节点表示GPS点的数目，可以反映该区域的人口密度。ROI网络的边表示两个区域之间的运输流量的强度。ROI的节点度信息反映了这个地区是否是城市的枢纽区域。邻居ROI的度分布可以从更高的层次反映出该地区的重要性和连续性。 例如，如果两个ROI在上述方面彼此相似，则它们可能分别代表一个枢纽巴士站和一个中心火车站，或一个大的公司和一个大学校园。
+
+\item \textbf{时间上下文。}应用\CascadeSync算法后，ROI网络中也会保留时间信息。访问时间和停留时间的分布可以反映一个地区的时间模式。例如，一个地区包含许多餐馆，则访问它们的轨迹主要集中在午餐时间和晚餐时间。而住宅区的也具有鲜明的特征，因为大多采样点在整个晚上都在这儿静止。
+
+\item \textbf{领域知识。}与网络属性和时间信息不同，领域知识不能从轨迹数据中提取。相反，领域知识是将嵌入模型作为一种监督的辅助信息。例如，一个ROI与城市中心点之间的距离，或者一个ROI是否代表道路交叉点，超市或危险犯罪区域等。
+\end{itemize}
 
 
 
-\section{基因表达数据上的算法实现及评估}
-% \pagenumbering{arabic}
-% \setcounter{page}{28}
-\label{sec:gene}
-在本小节中，我们将在基因数据集上对\cosync算法进行测试。首先我们将介绍选本次实验选用的基因数据集，之后给出\cosync运行的聚类簇可视化结果，最后根据生物信息学中对基因的评价方法来说明\cosync算法的运行结果。
 
-\subsection{基因数据集选取}
-DNA微阵列数据是一种观测基因在特定样本上表达程度的数据\footnote{\url{https://en.wikipedia.org/wiki/DNA_microarray}}，可以用一个矩阵来表示，其中行代表基因，列代表特定样本，如不同个体，不同组织，或者不同环境下观测到的数据。
+图\ref{fig:context}给出了ROI邻居的示意图，其中紫色圆圈代表的${ROI}_j$是目标${ROI}_i$的一个语义邻居. 虽然它们在网络上的跳数超过了$W=2$跳，但明显${ROI}_j$的语义信息与${ROI}_i$的相似度比其他ROI要大。
 
-本文第一章提过，双边聚类这一领域就是在基因数据集上发展起来的，后面只有少部分方法能扩展到购物篮数据集以及文本-词汇数据集上。导致这一现象的原因是现实情况中，只有基因数据集密集无缺失值，这是距离度量的必要条件。
+一旦获得几何和语义邻域，我们就可以将ROI嵌入到高维空间中，这一步借用了带有负抽样（SGNS）架构的思想\cite{mikolov2013distributed}。
 
-在本章第\ref{subsec:principle}节中的数据集选取原则中提到，\cosync可以处理的数据集必须是数值型无缺失值的，基因数据集满足这一条件。然而基因数据集的尺寸规模几乎都为$1000\times10$量级，即数千规模的基因在数十个样本上的表达程度，使得矩阵的行列比例严重失调。前文说过，数据集比例失调可能会带来算法正确率降低。面对这一困扰，我们只能在实验中尽量以调参数的方式来进行应对。
-
-本次实验中，我们选取了四个通用的基因表达数据集\footnote{基因数据集矩阵及对应的基因名称来源:\url{http://datam.i2r.a-star.edu.sg/datasets/krbd/index.html}}，皆被国际众多知名双边聚类算法所使用，其信息总结如表\ref{tab:dataset}。
 \vspace{3mm}
-\tabcolsep=5pt
+\textbf{嵌入模型。}给定一个轨迹数据集$\mathcal{T}$，在ROI网络上的任意一层，假设$w$是一个该层的ROI，$N(w)$是$w$两种类型邻居的集合，$NEG(w)$表示$w$的负样本集合。则定义从任意$u\in{N(w)}$转移到任意一个目标ROI$v$的概率如下：
+\begin{equation}
+\label{eq:transP}
+p(v|u) =
+\begin{cases}
+\sigma(\vec{t_w}\cdot{}\vec{s_u}) & \text{if } v = w,\\
+1- \sigma(\vec{t_v}\cdot{}\vec{s_u}) & \text{otherwise}.
+\end{cases}
+\end{equation}
+其中$\sigma(x)=1/(1+\exp{(-x)})$是sigmoid函数。$\vec{s_u}$与$\vec{t_v}$是ROI$u$和$v$的嵌入向量.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=130mm]{pics/Hembedding.pdf}
+\caption {多层次语义ROI网络上的嵌入表征示意图。}
+\label{fig:Hembedding}
+\end{figure*}
+
+模型的最大似然函数可写为：
+\begin{equation}
+\label{eq:optimizeFun}
+L_{H^l} = \log\prod_{w\in{\mathcal{ROI}}^l}\prod_{u \in N(w)}{\hspace{-2mm}\sigma(\vec{t_w}\cdot{}\vec{s_u})}\hspace{-4mm}\prod_{v \in NEG(w)}{\hspace{-4mm}[1-\sigma(\vec{t_v}\cdot{}\vec{s_u})]}
+\end{equation}
+\begin{displaymath}
+\hspace{2mm}= \hspace{-1mm}\sum_{\hspace{-2mm}w\in{\mathcal{ROI}}^l}\hspace{-2mm}\sum_{\hspace{2mm}u \in N(w)}\hspace{-1mm}\left\{{\hspace{-1mm}}\log\sigma(\vec{t_w}\cdot{}\vec{s_u})+ \hspace{-4mm}\sum_{v \in NEG(w)}{\hspace{-3mm}\log[1-\sigma(\vec{t_v}\cdot{}\vec{s_u})]}\right\}, \nonumber
+\end{displaymath}
+
+这个似然函数在嵌入空间中表示目标ROI的向量应该尽可能接近其邻域的所有矢量，同时区别其负样本的向量。
+
+\subsection{多层ROI网络不同层间的信息扩散}
+
+
+嵌入过程在分层ROI网络的每一层上进行。此外，考虑到每个ROI都有父节点或子节点（除非它位于顶层或底层），我们做出一个直观的假设：每个ROI应该尽可能地在嵌入空间里与其父节点接近（如果存在）。 这种假设在显示中的语义下是合理的。例如，一个大商区的语义含义应包含位于该地区的公司或商店提供的所有功能。我们将这种信息传播写入嵌入模型的正则化项中：
+
+\begin{equation}
+\label{eq:optimizeFun2}
+L_{V^l} = \sum_{w\in{\mathcal{ROI}^l}}\frac{1}{2}||\vec{t_w}-\vec{t_{\pi(w)}}||^2_2 + \frac{1}{2}||\vec{s_w}-\vec{s_{\pi(w)}}||^2_2,
+\end{equation}
+其中$\pi(w)$是ROI$w$的父节点。事实上父子节点间的影响可由在他们各自的向量上的约束来表示。图\ref{fig:Hembedding}(b)给出了一个例子，其中${ROI}_j^{l+1}$是第$l+1$层的一个ROI，它的向量被其父节点${ROI}_i^{l+2}$的向量和其子节点的${ROI}_k^{l}$的向量所约束。
+
+
+\subsection{多层次语义ROI网络上的多层嵌入模型。}
+最后，我们将原始的嵌入模型(\ref{eq:optimizeFun})以及约束项(\ref{eq:optimizeFun2})结合起来，得到了最后的目标方程：
+\begin{equation}
+\label{eq:optimizeFunAll}
+\max \sum_{l=1:L_M} L_{H^l} - \alpha\hspace{-2mm}\sum_{l=1:L_M-1}\hspace{-2mm}L_{V^l}
+\end{equation}
+其中$\alpha$是一个折中系数。上面这个优化式可由随机梯度下降法（Stochastic Gradient Descent, SGD)来进行优化求解。参数的梯度项写在了算法\ref{alg:embedding}的7-17行里。
+
+
+
+\subsection{轨迹的语义嵌入模型。}
+当我们得到所有ROI的嵌入向量后，我们可用ROI的权值加权求和得到轨迹的嵌入向量。给定一条轨迹$T^l = \{{ROI}^l_1, {ROI}^l_2, \cdots, {ROI}^l_n\}$在第$l$层上的表示。轨迹$T$最终的嵌入向量$\text{vec}(T)$可以表示为：
+\begin{equation}
+\label{eq:traVector}
+\text{vec}(T) = \sum_{l=1}^{L_M}\sum_{i=1}^n\tau^l_i\cdot\text{vec}({ROI}^l_i),
+\end{equation}
+其中$\tau_i^l$是${ROI}^l_i$的权值，代表了轨迹$T$停留在${ROI}^l_i$的时间。注意这里也可以用更复杂的测量来求的轨迹的嵌入向量，比如加入衰减函数等。
+
+值得注意的是，虽然这种获得轨迹向量的方式比起一些复杂的方法，比如，工作\cite{socher2011dynamic,kalchbrenner2014convolutional,tai2015improved}要简单得多，但是简单的加权模型也非常的有效\cite{blacoe2012comparison}。Wieting等人 \cite{wieting2015towards}甚至证明了简单的加权模型性能要比复杂的神经网络要更好。再者，简单加权也是符合常识的：轨迹总是由采样点构成的。
+
+
+\begin{algorithm}[!t]
+\caption{语义轨迹嵌入模型}
+\label{alg:embedding}
+\SetKwData{True}{True}
+\SetKwData{False}{False}
+\SetKwFunction{Norm}{Norm}
+\SetKwFunction{Count}{Count}
+\SetKwFunction{Map}{Map}
+\SetKwFunction{Length}{Length}
+\SetKwFunction{Reduce}{Reduce}
+\SetKwFunction{AverageKnn}{AverageKnn}
+\SetKwFunction{RandomlyInit}{RandomlyInit}
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\SetKwInOut{Parameter}{Parameter}
+{
+\Input{多层次ROI网络$G(V,E)$; ROI$w$的几何邻居和语义邻居$N(w)$;}
+\Output{语义向量：vec$(ROI)$ 和 vec$(T)$;}
+\Parameter{迭代次数$K$；学习率 $\eta$；折中系数$\alpha$；}
+% \Parameter{Interaction range ${\epsilon}_0$; Incremental change $\triangle\epsilon$; Maximal layer $\mathcal{L}_M$; Learning rate $\eta$;}
+\BlankLine
+
+\lForEach {${ROI}^l_i\in{\mathcal{{ROI}}^l}$}{\RandomlyInit$(\vec{s_i}, \vec{t_i})$}
+\ForEach {\emph{迭代数} $k \in \{1,2,\cdots,K\}$}{
+\ForEach {\emph{层} $l \in \{1,2,\cdots,L_M-1\}$}{
+% \ForEach {\emph{trajectory} $T^l=\{{ROI}^l_1,\cdots,{ROI}^l_{n^l}\}\in\mathcal{T}^l$}{
+\ForEach {\emph{ROI} $w \in \mathcal{ROI}^l$ \emph{on the ROI network}}{
+找寻$w$的两种邻居$N(w)$\;
+对$w$进行负采样$NEG(w)$\;
+\ForEach {$u \in N(w)$}{
+$e = 0$\;
+\ForEach {$v \in \{w\}\bigcup{}NEG(w)$}{
+\lIf{$v == w$} {$I(v) = 1$; \textbf{else} $I(v) = 0$}
+$g = \eta(I(v) - \sigma(\vec{t_v}\cdot\vec{s_u}))$;
+$\vec{e} = \vec{e} + g\vec{t_v}$\;
+$\vec{t_v} = \vec{t_v} + g\vec{s_u} + \eta\alpha(\vec{t_{\pi(v)}}-\vec{t_v})$\; %//update neighbors.\\ 
+$\vec{t_{\pi(v)}} = \vec{t_{\pi(v)}} + \eta\alpha(\vec{t_v} - \vec{t_{\pi(v)}})$\; %//update neighbors' parent.\\
+}
+$\vec{s_u} = \vec{s_u} + \vec{e} + \eta\alpha(\vec{s_{\pi(u)}} - \vec{s_u})$\; %//update this ROI.\\
+$\vec{s_{\pi(u)}} = \vec{s_{\pi(u)}} + \eta\alpha(\vec{s_{u}} - \vec{s_{\pi(u)}})$\; %//update parent.\\
+}
+}
+% }
+}
+}
+\lForEach {${ROI}_i \in \mathcal{ROI}$}{
+vec$({ROI}_i) =[\vec{s_i}, \vec{t_i}]$
+}
+\lForEach {\emph{轨迹} $T\in\mathcal{T}$}{计算 $vec(T)$ via Eq.(\ref{eq:traVector})}
+% \ForEach {trajectory $T=\{{ROI}_1,{ROI}_2,\cdots,{ROI}_n\}\in\mathcal{T}$}{
+% vec$(T) =\sum_i{\text{vec}(ROI}_i)$; //Obtain the trajectory vector \\
+% }
+}
+\end{algorithm}
+
+\subsection{ROI和轨迹的语义检索}
+现实中，由于许多语义模式隐含在轨迹中，查询不能直接进行。作为替代方案，我们可以查询与选中地点或轨迹的最相似的位置或轨迹。也就是说，我们可以检索某个样本最相似的ROI或者轨迹，而不是直接构建复杂查询。
+
+由于ROI或者轨迹在具有语义的连续空间中表示为向量，因此我们可以通过计算向量之间的距离来检索最相似的ROI或者轨迹。不失一般性，我们在这项工作中使用向量间的欧氏距离。
+
+
+\subsection{时间复杂度分析}
+ROI嵌入模型的时间复杂度为$O(K \times N\times N_1\times N_2)$，其中$N$是点的数目，$N_1$是两种邻居的平均数量，$N_2$是负采样的样本个数，$K$是迭代的次数。
+
+\section{实验}
+\subsection{实验准备}
+
+\vspace{3mm}
+\noindent\textbf{人工数据集}
+和上一章节一样的方法，我们用概率路径规划算法\cite{kavraki1996probabilistic}生成50条随机轨迹。我们随机选择10个点作为关键节点，并确保每个关键节点至少有一条轨迹通过。 语义ROI和轨迹检索任务旨在检测与这些关键点高度相关的ROI和轨迹。
+
+\vspace{3mm}
+\noindent\textbf{真实数据集}
+在上一章节Geolife和T-Drive轨迹数据的基础上，我们又引进了Kaggle 和Chengdu两个新的轨迹集。它们的统计信息在表\ref{tab:datasets}中。
+
+
+% \tabcolsep=1pt
 \begin{table}[!htb]\renewcommand{\arraystretch}{1.3}
-\center \caption{四个基因数据集的统计信息表}
+% \vspace{-5mm}
+\caption{Information of four real-world data sets}
+% \vspace{-3mm}
+\center
 \small
-\begin{tabular}{ccccc}
+\begin{tabular}{lcccc}
+\hlinew{1pt} \textbf{Dataset}& \textbf{\#Point}& \textbf{\#Traj.}& \textbf{[Longitude, Latitude range]} & \textbf{[Width$\times$Height](m)}\\ \hlinew{1pt}
+Geolife
+& 24,876,978 & 18,670 & $[116.194, 116.553, 39.751, 40.033]$ & [31,024 $\times$ 31,368] \\
+T-Drive
+& 6,969,481 & 8,768 & $[116.194, 116.553, 39.751, 40.033]$ & [31,024 $\times$ 31,368] \\
+Kaggle
+& 78,239,735 & 1,704,769 & $[-8.702, -8.549, 41.135, 41.246]$ & [12,613$\times$ 12,365] \\
+Chengdu
+& 9,671,104 & 2,003 & $[103.913 ,104.180, 30.538, 30.765]$ & [25,484 $\times$ 25,219] \\
 \hlinew{1pt}
-\textbf{数据集}& \#\textbf{基因数目}& \#\textbf{样本数目} & \textbf{样本类别名称}&  \textbf{样本分布}\\
-\hlinew{1pt}
-Colon  &  1096 & 62 &Normal/Tumor& 20/42  \\
-Leukemia   & 3571 & 72 &ALL/AML & 47/25    \\
-Lung    & 2401 & 181 &ADCA/MPM& 150/31 \\
-MLL & 2474 & 72  & ALL/AML/MLL&24/28/20 \\ \hlinew{1pt}
 \end{tabular}
-\label{tab:dataset}
+\label{tab:datasets}
 \end{table}
 
-可见数据集的行列比例很不均衡。其样本类别只有两个或者三个，其中ALL、AML、ADCA、MPM和MLL均为疾病名称的缩写，而基因没有直接的类别标签。
-%其结果评价将用\ref{subsec:analysis}中所述的基因集丰富度分析来进行。
-
-\subsection{\cosync在基因数据集上的联合簇挖掘}
-真实数据集与人工数据集的差别在于真实数据集的联合簇数目更多、大小更不规律、分布更不均衡，取不同的$\epsilon$邻域邻居将得到不同层次下的联合簇。我们结合专家知识来制定合适的$\epsilon$取值范围，在取值范围内用\cosync对上述数据集进行多次测试后，得到一些特定值的大尺寸联合簇。
-
-我们将\cosync，ITCC，MSSRCC，Spectral Clustering和Plaid算法在四个数据集上进行了实验。如前文所述，基因空间的评价无法直接对比，其将用\ref{subsec:analysis}中所述的基因集丰富度分析来来进行。故我们仅将对他们找出的联合簇中的样本空间进行评价对比，用\ref{subsec:evaluation}节中叙述的准确率和召回率作为评价指标。表\ref{tab:compare}展示了四种算法在四个数据集上找到的所有联合簇在样本空间中的评价。
+\vspace{2mm}
+\noindent\textbf{真实数据的区域语义获取方法。}现实世界的轨迹数据富含各种语义信息，然而，真实的语义信息却通常很难获得。幸运的是，受益于在线地图服务的反向地理编码功能，比如MapBox API\footnote{\url{https://www.mapbox.com/}}和高德地图API\footnote{\url{https://www.amap.com /}}，我们可以得到区域信息作为真实标签。具体而言，API可以将GPS坐标输入得到该地方的功能，例如银行，学校或市场。因此，我们将每个ROI的语义真实语义标签定义为其功能类别的分布，并将两个ROI$A$和$B$的真实相似性定义为两个分布的相交部分：
+\begin{equation}
+\mathrm{Sim}(A,B) = \sum{\min\left(\text{distribution}(A),{\text{distribution}(B)}\right)}.
+\label{eq:SIM}
+\end{equation}
+举一个例子，若$A$点的功能分布为: \{银行，学校，市场，音乐\} = $\{0.2, 0.7, 0.1, 0\}$，而$B$点的为：\{银行，学校，市场，音乐\} = $\{0.4, 0.3, 0, 0.3\}$。那么两个点的相似度则可写为$\mathrm{Sim}(A,B) = 0.2 + 0.3 + 0 + 0 = 0.5$。这种定义方式是直观的。
 
 \vspace{2mm}
-\tabcolsep=3pt
-\begin{table}[!htb]\renewcommand{\arraystretch}{1.2}
-\center \caption{五种算法在四个数据集上找出聚类簇的样本空间评价}
-\small
-\begin{tabular}{c|ccc|ccc|cc|cc|cc}
-\hlinew{1pt}
-\multirow{2}{*}{\textbf{}} & \multicolumn{3}{c|}{\textbf{ CoSync}}&\multicolumn{3}{c|}{\textbf{Plaid}}& \multicolumn{2}{c|}{\textbf{ ITCC}} &\multicolumn{2}{c|}{\textbf{ MSSRCC}} & \multicolumn{2}{c}{\textbf{ Spectral}}  \\
-\cline{2-13}
-  & \#C &Pre. & Rec. & \#C &Pre. & Rec. & \#C & Avg. &\#C & Avg. &\#C & Avg. \\[0.4ex] \hlinew{1pt}
-Colon & 11& 0.95 & 0.66& 4&0.71&0.66& 2& 0.82& 2& 0.86 &2 & 0.73\\
-Leukemia & 28& 0.96 & 0.71 &2&0.81&0.43& 2& 0.95&2 & 0.93&2 & 0.74\\
-Lung& 23& 1.00& 0.96 &3&1.00&0.50& 2& 0.85& 2& 0.99& 2& 1.00 \\
-MLL& 23& 0.99 & 0.67 &4&0.88&0.88&3 &0.83 &3 &0.93 &3 &0.64 \\ \hlinew{1pt}
-\end{tabular}
-\label{tab:compare}
-\end{table}
+\textbf{真实数据的轨迹语义获取方法。} 
+类似的，通过分别利用以上所述的API和式（\ref{eq:SIM}），我们使用一种直观的方法来获取轨迹的真实语义分布。由于轨迹由一组采样点组成，因此该轨迹的真实语义标签可以通过其采样点的真实语义标签的归一化和来表示。此外，由于原始GPS点太多，调用地图API太繁杂。因此我们使用\CascadeSync算法对原始GPS进行处理得到一个单层ROI网络，取交互参数$\epsilon = 1/200 *（w + h）$，其中$ w，h $是地图的宽度和高度。用这种方式将数百万的GPS点数减少到数千个ROI。就容易地获得真实语义标签和相似性。注意我们后面也会用到这个辅助ROI网络。
 
-可以看到ITCC，MSSRCC和Spectral Clustering算法的由于基于划分，故其样本空间划分数目已经提前被指定好，均为数据中样本类别的真实数目。在自动找寻联合簇的算法\cosync和Plaid当中，Plaid找出的簇仅为$2\sim4$个，而\cosync算法在Colon数据集中找出11个联合簇，而其他三个数据集上，都发掘出了$20$个以上的联合簇。
+对于语义轨迹检索，如果检索到的轨迹与查询轨迹重叠，即它们与查询轨迹共享大多数ROI，则NDCG@k值将是完美的。然而，这种类型的轨迹是不需要的，因此，我们规定当且仅当一条检索出的轨迹与辅助ROI网络上的被查询的轨迹共享小于$50\%$的ROI时，检索的轨迹才是有效的。
 
-关于样本的评价标准，\cosync在四个数据集上准确率都达到了令人满意的$95\%$\\以上，而召回率达到了$66\%$以上。这说明了\cosync算法找出的联合簇都能代表真实数据中的数据结构。而召回率在这重要性不是很高，因为这仅代表着算法找出的样本没有覆盖整个样本维空间。从准确率上来看，其他算法的性能都没有超过\cosync，而从召回率的角度看，基于划分的方法明显超出\cosync算法，这是合理的结果。
-
-其次，我们还能从图中看出，数据集Lung在五个算法下都表现出了优良的性能，而Colon数据集在5个算法下的性能都不如其他数据集。这说明数据集本身的结构会影响所有的算法效能。
-
-为了观察\cosync找出的聚类簇的具体形态，我们为上述结果中\cosync的前十大尺寸的聚类簇进行更细的观察。表\ref{tab:real}列举了四个数据集中尺寸最大的10个联合簇的信息，包括该联合簇的行、列数目，以及关于样本维度上的精确率和召回率。
-
-
-
-
-从表中的结果中我们可以看出来，\cosync的找寻质量还是较高的。大多数聚类簇的准确率都是$1.00$，在Lung数据集上甚至所有的聚类簇在样本维空间上的聚类准确率都为$1.00$。这一结果更肯定了我们上述的判断：\cosync算法找出的聚类簇的准确率很高。
-
-ITCC，MSSRCC和Spectral Clustering算法这样基于划分的方法在没有标签的情况下， 决定划分簇数目是非常困难的，错误的参数指定将会带来完全偏离真实情况的结果。接下来，我们将对五种算法找出的联合簇对基因维度进行评价。
-
-\subsection{基因集丰富度分析}
-\label{subsec:analysis}
-我们实验数据的基因表达数据来源于对数以千的基因在特定样本下进行表达的探测。这其中样本的分类是明确的，但是基因却没有确定的类标签。为了衡量数据挖掘、人工智能算法对基因分类、聚类的结果，一种专门的衡量指标被提了出来，即基因集丰富度分析。
-
-基因丰富度分析\footnote{\url{https://en.wikipedia.org/wiki/Gene_set_enrichment}}，也称为功能性丰富度分析，是一种为基因和蛋白质的归类显著性进行评判的一种分析方法。基因没有类标签，但大量的实验表明在一些特定的试验下，观测基因经历一些生物过程最终表达为蛋白质的情况，一部分基因会表达得更明显，而另外的基因则被抑制或不表达。搜集这些历史记录，大量的特定的基因集合被记录下来，它们被记录在基因本体库\footnote{\url{https://en.wikipedia.org/wiki/Gene_ontology}}中。基因本体库中的特定基因集合可以分为以下三个邻域类别：
-\begin{itemize}
-\item \textbf{~~细胞组件（cellular component）}：细胞的每个部分和细胞外环境。
-\item \textbf{~~分子功能（molecular function）}：基因产物在分子级别的主要活动，比如结合以及催化。
-\item \textbf{~~生物过程（biological process）}：细胞内发生的，可以定义开始和结束的事件或行动。
-\end{itemize}
-
-有了基因本体库，我们用算法对基因进行聚类的结果便有了比对的参照物。针对我们算法找出的基因数据集与基因本体中不同情况下的基因集合，用假设假设检验\footnote{\url{https://en.wikipedia.org/wiki/Statistical_hypothesis_testing}}的方式，便能得知我们找出的基因集合是否合理：是否完全属于某一个基因本体中的基因集合？是否太过随机，没有任何代表性？用这种方式，我们便能评价\cosync找出的聚类簇中基因空间中的结果好坏。
-
-\tabcolsep=4pt
-\begin{table*}[!h]\renewcommand{\arraystretch}{1.2}
-\center \caption{各个数据集上前十大联合簇信息。其中 $P$ 和 $R$ 分别代表每个联合簇在样本空间中的精确率和召回率。 $No.G.$ 和 $No.S.$分别是联合簇包含的基因和样本的数目。 $N$ 和 $T$ 分别代表Colon数据集中的Normal和Tumor。 $A$ 和 $M$ 分别代表Lung数据集中的ADCA和MPM。 $AL$, $AM$ 和 $ML$ 分别代表Leukemia和MLL数据集中的ALL，AML和MLL。}
-\small
-\begin{tabular}{ccccccccccccc}
-\hlinew{1pt}
-&~~&\multicolumn{5}{c}{\textbf{Colon}} & &\multicolumn{5}{c}{\textbf{Leukemia}} \\ \cline{3-7} \cline{9-13}
- \textbf{cID} &~~& \textbf{Size}   &\textbf{No.G. }& \textbf{No.S. } & \textbf{P} &\textbf{R}&~~& \textbf{Size}   &\textbf{No.G.} & \textbf{No.S.}  & \textbf{P} &\textbf{R}\\
-\hlinew{1pt}
-1   &~~& 1480  &296   & 5(N)   &1.00  & 0.23 &~~&3216 & 268 & 12(7AL/5AM) &0.58  &  0.15  \\
-2   &~~& 966   &138   &7(5N/2T)&0.71  & 0.23 &~~&2570 &514  & 5(4AM/1AL)  &0.80  &0.16    \\
-3   &~~& 666   &111   &6(T)    &1.00  &0.15  &~~&2320 &464  & 5(AL)        &1.00  &0.11   \\
-4   &~~& 510   &85    &6(5N/1T)&0.83  &0.23  &~~&1480 &296  & 5(AL)        &1.00  &0.11   \\
-5   &~~& 420   &84    &5(N)    &1.00  &0.13  &~~&1215 &243  & 5(AM)        &1.00  &0.20   \\
-6   &~~& 290   &58    &5(T)    &1.00  &0.13  &~~&625  &125  & 5(AL)        & 1.00 &  0.11 \\
-7   &~~& 205   &41    &5(T)    &1.00  &0.13  &~~&320  &64   &5(AL)         &1.00  &0.11   \\
-8   &~~& 125   &25    &5(T)    &1.00  &0.13  &~~&294  &49   &6(AM)         & 1.00 &0.24   \\
-9   &~~& 65    &13    &5(T)    &1.00  &0.13  &~~&264  &22   &12(AL)        &1.00  &0.26   \\
-10  &~~& 49    &7     &7(T)    &1.00  &0.13  &~~&242  &22   &11(AL)        & 1.00 &  0.23 \\
-\hlinew{1pt}
-
-
-&~~&\multicolumn{5}{c}{\textbf{Lung}} & &\multicolumn{5}{c}{\textbf{MLL}}\\ \cline{3-7} \cline{9-13}
- \textbf{cID} &~~&  \textbf{Size}   &\textbf{No.G.} & \textbf{No.S.}   & \textbf{P}&\textbf{R}&~~&  \textbf{Size}   &\textbf{No.G.} & \textbf{No.S.}   & \textbf{P }&\textbf{R}\\
- \hlinew{1pt}
-1  &~~& 5614   & 401  & 14(A)   & 1.00  & 0.09 &~~&4228   & 302  & 14(AM)   & 1.00      & 0.50  \\
-2  &~~& 4394   & 338  & 13(M)   & 1.00  & 0.42 &~~&3765   & 251  & 15(AL)   & 1.00      & 0.63  \\
-3  &~~& 3960   & 264  & 15(A)   & 1.00  & 0.10 &~~&2954   & 211  & 14(AL)   & 1.00      & 0.58  \\
-4  &~~& 3806   & 346  & 11(M)   & 1.00  & 0.36 &~~&2071   & 109  & 19(AM)   & 1.00      & 0.68   \\
-5  &~~& 2344   & 293  & 8(A)    & 1.00  & 0.05 &~~&1584   & 99   & 16(AM)   & 1.00      & 0.57  \\
-6  &~~& 2210   & 221  & 10(M)   & 1.00  & 0.32 &~~&918    & 102  & 9(AL)   & 1.00      & 0.38   \\
-7  &~~& 1770   & 177  & 10(M)   & 1.00  & 0.32 &~~&890    & 89   & 10(AL)   & 1.00      & 0.42   \\
-8  &~~& 1035   & 115  & 9(M)    & 1.00  & 0.29 &~~&715    & 143  & 5(3ML/2AL) & 0.60  & 0.15   \\
-9  &~~& 950    & 190  & 5(A)    & 1.00  & 0.03 &~~&533    & 41   & 13(AM)   & 1.00      & 0.46   \\
-10 &~~& 420    & 30   & 14(M)   & 1.00  & 0.45 &~~&510    & 34   & 15(AM)   & 1.00      & 0.54   \\
-
-\hlinew{1pt}
-
-\end{tabular}
-\label{tab:real}
-\end{table*}
-
-统计假设检验用p-value\footnote{\url{https://en.wikipedia.org/wiki/P-value}}来作为显著与否的评价指标。其概念定义如下：
-
-\textbf{显著性因子p-value}：一种在原假设为真的前提下出现观察样本以及更极端情况的概率。设某假设为$H_0$，则p-value在$H_0$为真的条件下，因样本偏差太大而拒绝$H_0$的概率，即：
-\begin{equation*}
-p-value = P(\text{拒绝接受}H_0\big{|}H_0\text{为真})
-\end{equation*}
-
-p-value值越小，则说明拒绝$H_0$的概率越小，也就是假设$H_0$越可信。当p-value\\取$0$时候，假设$H_0$与观测相比毫无差别。而当p-value值打过一定程度时候，结果就不可信了。对此人们通常设置一个阈值$\alpha$，当$p-value\ge\alpha$时，便拒绝假设$H_0$。
-
-\vspace{2mm}
-在基因库丰富度分析中，令真实的一个基因集合为$\mathcal{G}$，而预测出来的基因集合为$\hat{\mathcal{G}}$，对应假设$H_0$的命题为：
-\begin{equation*}
-H_0 = \{\hat{\mathcal{G}}\subseteq{}\mathcal{G}\}
-\end{equation*}
-
-即p-value在基因库丰富度分析中，可以作为任意给定的基因集合的显著性的指标。由此我们可以预先设置一个拒绝阈值：$\alpha$，之后对每一个聚类簇的基因与基因本体中每一个基因集合对比，算出一个对应的p-value值，若其大于$\alpha$，则不考虑基因本体中这个基因库。最后我们对基因本体库中的满足$p-value\leq\alpha$的基因集合列举出来。我们的算法找出的基因簇很可能就是这些基因集的子集。
-
-值得说明的是，给定我们的基因集合，对基因本体库里任意的基因集合都能算出一个p-value，虽然这些p-value本身值越小越好，但它们互相之间是不可比较的。例如我们不能因为我们的基因集对与艾滋病蛋白相关的基因本体集的p-value比其于白血病蛋白相关的基因本体集的p-value值小，就说明我们的基因集更倾向于与艾滋病的蛋白表达相关。也正是这个原因，有三个浅显的结论：
-\begin{itemize}
-\item ~~不同算法间找出聚类簇中基因集合的p-value值之间不能相互比较。
-\item ~~同一算法中，不同聚类簇基因集的p-value值不能相互比较。
-\item ~~同一算法中，同一聚类簇中的基因集对基因本体中不同基因集的p-value值之间不能相互比较。
-\end{itemize}
-
-由于\cosync与其他算法找出聚类簇的基因集显著结果无法比较，故本文中我们仅对我们的\cosync算法进行基因集丰富度分析。事实上，现在已有用于基因库丰富度分析的公开网站，并且已经很成熟和快速，本次我们将使用基因本体库最齐全的Gene Ontology Consortium网站(\url{http://geneontology.org/})来进行丰富度分析。表\ref{tab:annotations}列出了\cosync联合簇找出的联合簇基因集进行丰富度分析的结果，阈值$\alpha$取为$0.05$。受于篇幅的限制，此处仅列出每个数据集中前3大的联合簇的分析结果。
-
-表中CC和BP以及后面跟的专业名词分别代表细胞组件与生物过程中特定的物质组成部分或者生物学过程。可以看出每个聚类簇在与基因本体库中的基因集进行匹配时，p-value$\le0.05$的基因集最少在Colon数据集中能匹配到65个，最多在Leukemia数据集中能匹配539个。找出其各自p-value最小的4个进行进一步剖析，可以看到它们的p-value都小于$1\times10^{-3}$级别。有理由相信这部分基因就是对应细胞组件或者生物过程中某特定过程的组成基因的子集。图\ref{cocluster}中，我们对每个数据集中大尺寸联合簇进行了可视化，由于篇幅原因，对于样本的每个类别我们只取一个聚类簇。
-
-\vspace{2mm}
-\pic[!htb]{基因表达数据联合簇可视化图}{width=120mm}{cocluster}
-
-从上面简单的评估中，我们可以看出\cosync能够找到一些高质量的聚类簇。关于对聚类基因集的更进一步权威的生物学验证，已经超出本实验的范围，本文不再展开。
 
 \tabcolsep=1pt
-\begin{table*}[!htb]\renewcommand{\arraystretch}{0.9}
-\center \caption{\cosync算法找出的联合簇在基因空间上丰富度分析结果表。这里 BP 代表 “Biological Process”，CC 代表 “Cellular Component”。 \#Annotations 代表 p-value $<$0.05的所有基因本体库中的基因集数目。}
-\scriptsize
-\begin{tabular}{c|c|cclccc}
-\hlinew{0.85pt}\textbf{Data Sets} &\textbf{ CluID} & \#\textbf{Genes} & \#\textbf{Annotations}&\textbf{Top Enriched Annotations} &\textbf{Count} & \textbf{Percentage (\%) } & \textbf{P-Value}  \\[0.4ex] \hlinew{0.85pt}
-
-%Colon
-\multirow{12}{*}{Colon} &\multirow{4}{*}{C1}& \multirow{4}{*}{296} &\multirow{4}{*}{214}& CC:cytosol                &34  & 23.61\%   & 5.84E-07\\
-&&&&CC:plasma membrane part    &42  & 29.17\%    &3.01E-05\\
-&&&&BP:negative regulation of molecular function          &13  &9.03\%     &7.69E-05\\
-&&&& BP:striated muscle tissue development          &8  &5.56\%     &1.34E-04\\
-\cline{2-8}
- &\multirow{4}{*}{C2}& \multirow{4}{*}{138} &\multirow{4}{*}{157}& CC:plasma membrane part & 22 &37.29\%& 4.81E-05\\
-&&&& CC:plasma membrane& 28 &47.46\%&3.87E-04\\
-&&&& CC:cytosol &15&25.42\%&5.20E-04\\
-&&&& CC:actin cytoskeleton &7 & 11.86 \%&6.69E-04\\  \cline{2-8}
- &\multirow{4}{*}{C3}& \multirow{4}{*}{111} &\multirow{4}{*}{65}& BP:regulation of system process & 8 &15.69\%& 7.55E-05\\
-&&&& BP:heart development & 6 & 11.76\% &7.81E-04\\
-&&&& BP:negative regulation of molecular function& 7 & 13.73\%& 8.82E-04\\
-&&&& CC:striated muscle thin filament & 3 &5.88\% & 1.13E-03 \\
-\hline
-%Leukemia
-\multirow{12}{*}{Leukemia} &\multirow{4}{*}{C1}& \multirow{4}{*}{268} &\multirow{4}{*}{300}
-&BP:response to endogenous stimulus & 27 & 10.67\% & 2.47E-09\\
-&&&&CC:plasma membrane part & 71 & 28.06\% & 4.54E-09\\
-&&&&CC:integral to plasma membrane & 48 & 18.97\% & 5.34E-09\\
-&&&&BP:response to hormone stimulus & 25 & 9.88\% & 7.40E-09\\
-\cline{2-8}
-&\multirow{4}{*}{C2}& \multirow{4}{*}{514} &\multirow{4}{*}{415}
-&CC:cytosol & 123 & 24.45\% & 2.08E-28\\
-&&&&CC:intracellular organelle lumen & 142 & 28.23\% & 1.10E-26\\
-&&&&CC:organelle lumen & 142 & 28.23\% & 1.13E-25\\
-&&&&CC:membrane-enclosed lumen & 142 & 28.23\% & 8.10E-25\\
-\cline{2-8}
-&\multirow{4}{*}{C2}& \multirow{4}{*}{464} &\multirow{4}{*}{539}
-&CC:plasma membrane part & 114 & 25.79\% & 2.37E-11\\
-&&&&CC:integral to plasma membrane & 73 & 16.52\% & 2.72E-10\\
-&&&&CC:intrinsic to plasma membrane & 74 & 16.74\% & 2.95E-10\\
-&&&&CC:plasma membrane & 160 & 36.20\% & 2.30E-09\\
-\hline
-% %Lung
-\multirow{12}{*}{Lung} &\multirow{4}{*}{C1}& \multirow{4}{*}{401} &\multirow{4}{*}{308}
-&CC:cytosol & 88 & 23.34\% & 4.71E-17\\
-&&&&CC:intracellular organelle lumen & 87 & 23.08\% & 2.18E-09\\
-&&&&CC:organelle lumen & 88 & 23.34\% & 2.96E-09\\
-&&&&CC:membrane-enclosed lumen & 89 & 23.61\% & 3.47E-09\\
-\cline{2-8}
-&\multirow{4}{*}{C2}& \multirow{4}{*}{338} &\multirow{4}{*}{183}
-&CC:cytosol & 62 & 19.68\% & 1.74E-09\\
-&&&&BP:response to organic substance & 37 & 11.75\% & 6.39E-07\\
-&&&&BP:negative regulation of apoptosis & 24 & 7.62\% & 1.07E-06\\
-&&&&BP:negative regulation of programmed cell death & 24 & 7.62\% & 1.35E-06\\
-\cline{2-8}
-&\multirow{4}{*}{C3}& \multirow{4}{*}{264} &\multirow{4}{*}{105}
-&BP:translational elongation & 29 & 11.69\% & 2.29E-27\\
-&&&&CC:cytosol & 75 & 30.24\% & 1.13E-23\\
-&&&&BP:translation & 39 & 15.73\% & 4.81E-22\\
-&&&&CC:ribosome & 30 & 12.10\% & 3.84E-19\\
-\hline
-%MLL
-\multirow{13}{*}{MLL} &\multirow{5}{*}{C1}& \multirow{5}{*}{302} &\multirow{5}{*}{330}
-& BP:RNA splicing, via transesterification reactions & \multirow{2}{*}{22} & \multirow{2}{*}{7.46\% }& \multirow{2}{*}{1.28E-12}\\
- &&& & with bulged adenosine as nucleophile &  &  & \\
-&&&&BP:RNA splicing, via transesterification reactions & 22 & 7.46\% & 1.28E-12\\
-&&&&BP:nuclear mRNA splicing, via spliceosome & 22 & 7.46\% & 1.28E-12\\
-&&&&CC:membrane-enclosed lumen & 73 & 24.75\% & 1.58E-10\\
-\cline{2-8}
-&\multirow{4}{*}{C2}& \multirow{4}{*}{251} &\multirow{4}{*}{235}
-&   BP:RNA splicing & 28 & 11.43\% & 3.37E-14\\
-&&&&BP:mRNA metabolic process & 31 & 12.65\% & 8.00E-14\\
-&&&&BP:mRNA processing & 29 & 11.84\% & 9.54E-14\\
-&&&&CC:cytosol & 57 & 23.27\% & 1.05E-12\\
-\cline{2-8}
- &\multirow{4}{*}{C3}& \multirow{4}{*}{211} &\multirow{4}{*}{127}
-   & CC:organelle membrane & 36 & 17.48\% & 3.86E-08\\
-&&&&CC:organelle inner membrane & 19 & 9.22\% & 6.29E-08\\
-&&&&CC:organelle envelope & 26 & 12.62\% & 6.34E-08\\
-&&&&CC:envelope & 26 & 12.62\% & 6.75E-08\\
-\hlinew{0.85pt}
+\begin{figure}[!t]
+\centering
+% \footnotesize
+\begin{tabular}{ccc}
+\includegraphics[width=48mm]{pics/syn1.eps}&
+\includegraphics[width=48mm]{pics/syn2.eps}&
+\includegraphics[width=48mm]{pics/syn3.eps}\\
+(a) & (b) & (c) \\
 \end{tabular}
-\label{tab:annotations}
-\vspace{-2mm}
-\end{table*}
+% \vspace{-4mm}
+\caption{
+人工数据集和结果的示意图。(a)关键点和原始轨迹数据。10个五边形是随机生成的关键点。(b)多层次ROI网络的底层。蓝色ROI是关键ROI，其至少包含一个关键点。(c)轨迹检索结果。黑色轨迹是目标。检索结果为不同色调的绿色轨迹。颜色越深，与目标越相似，即包含更多关键ROI。}
+\label{fig:syn}
+% \vspace{-3mm}
+\end{figure}
 
-\subsection{基因表达数据集上测试小结}
-在本节中，我们说明了选用基因数据集的原因，说明了评价聚类得到的基因集的方法与标准，即基因集丰富度分析和统计假设检验p-value。我们在给定的四个知名基因表达数据集进行测试。在测试得到的聚类簇中，我们可以将样本维度的集合与已知类标签对比，结果显示其准确率和召回率都非常高，优于ITCC，MSSRCC，Spectral CLustering和Plaid算法。在基因集的评测上，我们仅对\cosync算法的聚类簇进行评析，能看到每个聚类簇的基因集都能高质量地匹配大量基因本体库中的特定基因集。这说明\cosync在基因数据集上工作的可行性与高效性。
+
+\vspace{3mm}
+\noindent\textbf{评价指标}
+为了衡量语义检索结果的准确性，我们需要定义ROI和轨迹的真实目标。在人工实验中，真的关键节点隐含在10个关键点里。对于相似ROI检索任务，给定任何关键点，最相似的ROI应该是包含其他九个关键点的ROI，这些关键点被称为真实ROI。检索性能通过正确检测到的真实ROI的比率来衡量。对于轨迹检索任务，我们选择目标轨迹作为尽可能多地通过真实ROI。在这种情况中，目标轨迹应该包含尽可能多的真实ROI。因此，我们可以获得检索到的轨迹并进行排序，然后比较真实顺序和检索顺序来计算累计收益（NDCG@k），其定义如下。
+
+接下来，我们可以执行ROI或者轨迹的语义检索了，并计算检索结果的ROI或者轨迹和真实ROI或轨迹之间的NDCG@k度量。此外，我们可以将算法的性能与国际最主流的相似性算法DTW，LCSS，EDR和Fr\'echet距离进行比较。在不失一般性的情况下，我们也在上述辅助ROI网络上计算这四个比较度量。
+
+
+\begin{equation}
+\mathrm{NDCG@k} = \frac{\mathrm{DCG@k}}{\mathrm{IDCG@k}},
+\label{eq:NDCG}
+\end{equation}
+其中$\mathrm{IDCG@k}$是$\mathrm{DCG@k}$的理想取值，而$\mathrm{DCG@k}$定义如下：
+\begin{equation}
+\mathrm{DCG@{k}} = \sum_{i=1}^{k} \frac{ 2^{rel_{i}} - 1 }{ \log_{2}(i+1)},
+\label{eq:DCG}
+\end{equation}
+其中$rel_i$是位置$i$处的相关度。为了试验更加清晰，我们采用5个级别的相关度。
+
+
+
+\tabcolsep=0.5pt
+% \vspace{-4mm}
+\begin{figure}[!b]
+% \vspace{-3mm}
+\centering
+\includegraphics[width=100mm]{pics/synNDCG.pdf}
+% \vspace{-4mm}
+\caption{人工数据集上的语义轨迹检索结果。阴影部分是100次检索的标准差区域。}
+\label{fig:synNDCG}
+\end{figure}
+
+\subsection{人工数据集上的验证}
+在人工数据集上，我们设定交互范围 $\epsilon = \{2,4,6,8,10\}(m)$，运用\CascadeSync 算法后得到一个5层的ROI网络。最下面的一层可视化在图\ref{fig:syn}(b)中。
+
+
+\vspace{1.5mm}
+\textbf{人工数据集上的关键节点检测结果。} 
+在此任务中，我们使用领域知识：ROI是否包含任何关键点。为了测试这些关键ROI是否具有相似的向量表征，我们评估了给定关键ROI的最相似ROI的检索准确性（图\ref{fig:syn}(b)中的蓝色ROI）。 理想的检索结果是所有关键ROI都比那些非关键ROI更相似。
+
+在ROI和轨迹的嵌入向量的基础上，我们搜索最相似的ROI。实验在随机生成的数据集上独立重复100次。得到的平均准确度为$\boldsymbol{99.64\%}$，这证明了关键点的语义成功地整合到嵌入表示中，并且可以有效地检测到关键点。
+
+
+\subsubsection{人工数据集上的语义轨迹检测结果。}
+我们在轨迹层面上进行类似的实验，目的是检索与包含最多关键ROI相似的目标轨迹。因此，类似的轨迹应包含尽可能多的关键ROI。我们计算并确定其余49个轨迹与目标的相似度，并使用NDCG@k，即式(\ref{eq:NDCG})来给定排名。在图\ref{fig:syn}(c)中我们可视化了最相似的轨迹，其中绿色轨迹的颜色深浅与检索顺序成正比。此外，我们使用第一层ROI网络（具有关键ROI标签的最佳级别）上的四个对比算法进行相同的实验。结果如图\ref{fig:synNDCG}所示。实验重复100次，阴影部分给出平均NDCG@k值的标准偏差。从图中可以看出，我们的模型优于其他四个模型，很好地捕获了语义信息。
+
+
+\tabcolsep=2pt
+\begin{figure}[!t]
+\centering
+% \vspace{-2mm}
+% \footnotesize
+\begin{tabular}{ccccc}
+\includegraphics[width=65mm]{pics/SP3.pdf}&
+\includegraphics[width=65mm]{pics/SP4.pdf}\\
+(a) 没有语义信息 & (b) 有语义信息
+% \multicolumn{2}{c}{(a) Geolife} & & \multicolumn{2}{c}{(b) Kaggle Taxi}\\
+\end{tabular}
+% \vspace{-2mm}
+\caption{在Kaggle数据集上的相似ROI检索结果。}
+% \vspace{-2mm}
+\label{fig:regionSim}
+\end{figure}
+
+
+\subsection{真实数据集上的检索结果}
+
+我们实验的目标是，给定一个ROI，我们检索前5个最相似的ROI，并计算 NCDG@5。此外，给定一条轨迹，我们检索前10个最相似的轨迹，计算NCDG@3,5,10，并与对比算法进行比较。此外，我们将每个ROI邻居的数量设置为3，将负抽样的样本数设置为5，并交互范围设置为$\epsilon(l) = l \times 1/200\times(width + height), l = \{1,\cdots,5\}$来产生一个5层的ROI网络。
+
+为了探索不同语义信息对现实数据检索性能的影响，我们取三种不同累心的模型来做实验：1)仅几何信息（即基本轨迹结构）;2)几何和基本语义（即网络特征和时间信息）; 3)所有类型的邻居和领域知识。此外，我们通过构建两个嵌入模型来研究特征传播的效果：仅在ROI网络的底层（$\epsilon(t) = 1/200 \times(width + height)$）用公式(\ref{eq:optimizeFun})进行训练，以及在ROI网络的5个层用式(\ref{eq:optimizeFunAll})进行训练。
+
+为了更好地说明ROI检索的结果，我们选择Kaggle数据集中的一个枢纽十字路口作为目标ROI。我们在上述5层网络中运用了具有和不具有语义邻居的嵌入模型，检索结果如图\ref{fig:regionSim}所示。从结果来看，具有语义邻居的模型可以捕获语义信息，从而容易地识别区域的功能，并且能够检索到远离查询目标十字路口的其他枢纽十字路口。原因在于交通的语义可以通过节点度以及度分布的信息在ROI网络上反映出来，因此不会受到几何位置的限制。
+
+ROI检索和轨迹检索的结果分别列在表\ref{tab:ROIEvaluation}和表\ref{tab:Evaluation_trajectory}中。从表中我们有三个发现：（1）嵌入模型中考虑的语义邻居越多，嵌入模型的性能越好；（2）当没有领域知识可用时，分层ROI网络上的嵌入模型优于单层模型的结果，这意味着分层结构通过特征传播促进了嵌入向量的表征能力。（3）当嵌入模型中融入领域知识后，性能主要依赖于领域知识的标签质量。
+
+
+\tabcolsep=3pt
+\begin{table}[tbh!]\renewcommand{\arraystretch}{1.3}
+\caption{ROI检索在NDCG@5指标上的结果。模型1仅考虑几何邻居。模型2考虑了几何邻居和基本的语义信息。模型3考虑了真实的标签信息。}
+% \vspace{-2mm}
+\center
+\small
+\begin{tabular}{cccccc}
+\hlinew{1pt}
+\textbf{数据集} &\textbf{结构} & \textbf{Random} & \textbf{模型1} & \textbf{模型2}&\textbf{模型3} \\[0.4ex] \hlinew{0.85pt}
+%Colon
+\multirow{2}{*}{Geolife} & One-layer & \multirow{2}{*}{0.429 $\pm$ 0.24} & 0.526 $\pm$ 0.18 & 0.560 $\pm$ 0.15 & 0.713 $\pm$ 0.18\\
+&Hierarchical & & 0.581 $\pm$ 0.15 & 0.615 $\pm$ 0.13 & \textbf{0.724 $\pm$ 0.17}\\
+\hline
+\multirow{2}{*}{T-Drive} & One-layer & \multirow{2}{*}{0.382 $\pm$ 0.23} & 0.592 $\pm$ 0.21 & 0.521 $\pm$ 0.18 & \textbf{0.713 $\pm$ 0.21}\\
+&Hierarchical & & 0.650 $\pm$ 0.24 & 0.655 $\pm$ 0.23 & 0.693 $\pm$ 0.18\\
+\hline
+\multirow{2}{*}{Kaggle} & One-layer & \multirow{2}{*}{0.410 $\pm$ 0.28} & 0.524 $\pm$ 0.20 & 0.542 $\pm$ 0.22 & 0.679 $\pm$ 0.19\\
+&Hierarchical & & 0.524 $\pm$ 0.22 & 0.567 $\pm$ 0.21 & \textbf{0.691 $\pm$ 0.16}\\
+\hline
+\multirow{2}{*}{Chengdu} & One-layer & \multirow{2}{*}{0.415 $\pm$ 0.25} & 0.666 $\pm$ 0.20 & 0.677 $\pm$ 0.21 & \textbf{0.817 $\pm$ 0.17}\\
+&Hierarchical & & 0.697 $\pm$ 0.23 & 0.665 $\pm$ 0.20 & 0.802 $\pm$ 0.16\\
+\hlinew{1pt}
+\end{tabular}
+\label{tab:ROIEvaluation}
+\end{table}
+
+
+
+\begin{table*}[tbh!]\renewcommand{\arraystretch}{1.3}
+\caption{四个真实数据集上的轨迹语义检索。}
+% \vspace{1mm}
+\center
+\footnotesize
+\tabcolsep=2pt
+\begin{tabular}{ccccccc}
+\hlinew{1pt}
+\textbf{数据集} & \textbf{指标} & \textbf{Random} & \textbf{DTW} & \textbf{Frechet} & \textbf{LCSS} & \textbf{EDR}\\
+\hlinew{0.85pt}
+
+\multirow{3}{*}{\textbf{Geolife}} 
+&NDCG@3 &0.254 $\pm$ 0.158 & 0.391 $\pm$ 0.198 & 0.328$ \pm $0.179 & 0.360 $\pm$ 0.258 & 0.340 $\pm$ 0.189   \\
+&NDCG@5 &0.272 $\pm$ 0.130 & 0.410 $\pm$ 0.185 & 0.393$ \pm $0.178 & 0.368 $\pm$ 0.224 & 0.411 $\pm$ 0.171   \\
+&NDCG@10 &0.293 $\pm$ 0.127 & 0.521 $\pm$ 0.134 & 0.439$ \pm $0.165 & 0.379 $\pm$ 0.184 & 0.467 $\pm$ 0.171 \\
+\hline
+\multirow{3}{*}{\textbf{T-Drive}} 
+&NDCG@3 &0.286 $\pm$ 0.182 & 0.416 $\pm$ 0.201 & 0.304$ \pm $0.191 & 0.396 $\pm$ 0.241 & 0.358 $\pm$ 0.195   \\
+&NDCG@5 &0.290 $\pm$ 0.172 & 0.430 $\pm$ 0.168 & 0.346$ \pm $0.156 & 0.402 $\pm$ 0.211 & 0.363 $\pm$ 0.184   \\
+&NDCG@10 &0.343 $\pm$ 0.169 & 0.443 $\pm$ 0.149 & 0.371$ \pm $0.141 & 0.402 $\pm$ 0.180 & 0.379 $\pm$ 0.161 \\
+\hline
+\multirow{3}{*}{\textbf{Kaggle}} 
+&NDCG@3 &0.255 $\pm$ 0.220 & 0.311 $\pm$ 0.223 & 0.250$ \pm $0.175 & 0.349 $\pm$ 0.227 & 0.290 $\pm$ 0.182   \\
+&NDCG@5 &0.276 $\pm$ 0.225 & 0.321 $\pm$ 0.215 & 0.288$ \pm $0.151 & 0.375 $\pm$ 0.218 & 0.304 $\pm$ 0.177   \\
+&NDCG@10 &0.307 $\pm$ 0.201 & 0.342 $\pm$ 0.207 & 0.300$ \pm $0.148 & 0.382 $\pm$ 0.214 & 0.308 $\pm$ 0.162 \\
+\hline
+\multirow{3}{*}{\textbf{Chengdu}} 
+&NDCG@3 &0.303 $\pm$ 0.210 & 0.417 $\pm$ 0.168 & 0.360$ \pm $0.239 & 0.314 $\pm$ 0.241 & 0.416 $\pm$ 0.196   \\
+&NDCG@5 &0.320 $\pm$ 0.208 & 0.442 $\pm$ 0.153 & 0.388$ \pm $0.229 & 0.346 $\pm$ 0.221 & 0.424 $\pm$ 0.171   \\
+&NDCG@10 &0.345 $\pm$ 0.205 & 0.457 $\pm$ 0.145 & 0.417$ \pm $0.211 & 0.376 $\pm$ 0.209 & 0.449 $\pm$ 0.179 \\
+% \hlinew{1pt}
+\end{tabular}
+
+\tabcolsep=6pt
+\begin{tabular}{ccccccc}
+\hlinew{1pt}
+\multirow{2}{*}{\textbf{数据集}} & \multirow{2}{*}{\textbf{指标}} & \multicolumn{2}{c}{\textbf{单层模型}} & \multicolumn{2}{c}{\textbf{多层模型}}\\
+\cline{3-6}
+&& \textbf{无领域知识} & \textbf{有领域知识} & \textbf{无领域知识} & \textbf{有领域知识}\\
+\hlinew{0.85pt}
+
+\multirow{3}{*}{\textbf{Geolife}} 
+&NDCG@3 & 0.468 $\pm$ 0.177 & 0.607 $\pm$ 0.152 & 0.545 $\pm$ 0.171 & \textbf{0.663 $\pm$ 0.148} \\
+&NDCG@5 & 0.483 $\pm$ 0.165 & 0.639 $\pm$ 0.120 & 0.552 $\pm$ 0.162 & \textbf{0.676 $\pm$ 0.104} \\
+&NDCG@10& 0.520 $\pm$ 0.156 & 0.657 $\pm$ 0.109 & 0.558 $\pm$ 0.148 & \textbf{0.689 $\pm$ 0.094}\\
+\hline
+\multirow{3}{*}{\textbf{T-Drive}}
+&NDCG@3 & 0.529 $\pm$ 0.169 & 0.697 $\pm$ 0.179 & 0.547 $\pm$ 0.182 & \textbf{0.717 $\pm$ 0.184} \\
+&NDCG@5 & 0.545 $\pm$ 0.144 & \textbf{0.711 $\pm$ 0.172} & 0.564 $\pm$ 0.169 & 0.702 $\pm$ 0.183 \\
+&NDCG@10& 0.544 $\pm$ 0.139 & \textbf{0.734 $\pm$ 0.168} & 0.599 $\pm$ 0.155 & 0.721 $\pm$ 0.175\\
+\hline
+\multirow{3}{*}{\textbf{Kaggle}}
+&NDCG@3 & 0.406 $\pm$ 0.185 & 0.593 $\pm$ 0.164 & 0.438 $\pm$ 0.183 & \textbf{0.600 $\pm$ 0.209}\\
+&NDCG@5 & 0.413 $\pm$ 0.160 & \textbf{0.604 $\pm$ 0.150} & 0.445 $\pm$ 0.151 & 0.602 $\pm$ 0.183\\
+&NDCG@10& 0.430 $\pm$ 0.150 & 0.607 $\pm$ 0.157 & 0.452 $\pm$ 0.145 & \textbf{0.626 $\pm $0.188}\\
+\hline
+\multirow{3}{*}{\textbf{Chengdu}}
+&NDCG@3 & 0.588 $\pm$ 0.159 & 0.824 $\pm$ 0.143 & 0.611 $\pm$ 0.160 & \textbf{0.833 $\pm$ 0.120}\\
+&NDCG@5 & 0.622 $\pm$ 0.124 & \textbf{0.859 $\pm$ 0.139} & 0.635 $\pm$ 0.139 & 0.849 $\pm$ 0.112\\
+&NDCG@10& 0.651 $\pm$ 0.112 & \textbf{0.866 $\pm$ 0.113} & 0.666 $\pm$ 0.114 & 0.862 $\pm$ 0.096\\
+\hlinew{1pt}
+\end{tabular}
+\label{tab:Evaluation_trajectory}
+\end{table*}
 
 \section{本章小结}
-在本章中，我们设计了一系列实验对\cosync算法进行验证。在第\ref{sec:experiment}节中，我们给出了实验集的选取和处理的五条原则，并给出了评价结果好坏的指标：准确率和召回率。
-在\ref{sec:artificial}节中我们首先用一个小规模实验集合对\cosync的工作流程作了说明，接着在棋盘分布与随机分布的两个中规模数据集上将五种算法进行了比较，说明了\cosync算法的优秀。
-最后在\ref{sec:gene}节中我们对基因表达数据进行测试，在样本维度上，\cosync的运行结果仍然好于其他四种算法，而在基因维度上，\cosync也能高质量匹配大量基因本体库中的基因集，说明了\cosync在基因数据集上的高效性。
-
-总结来看，无论是在人工数据集还是现实中的基因数据集上，\cosync的结果表现都非常出色，且优于一些国际上双边聚类代表性算法。实验的成功说明了\cosync算法中同步思想的正确与高效。
+在本章中，我们提出了一种新的语义轨迹嵌入表征方法。首先，经过 \CascadeSync模型将原始轨迹先转换为多层次的ROI网络。在这个网络上，可以依靠几何，语义，时间等信息以及作为上下文找到嵌入模型中的两种类型的邻居，其次利用负采样算法，计算出每一层ROI和轨迹的分布式表征向量。得到这个向量后，课通过直接计算向量间的欧几里德距离来高效地执行语义检索任务。在人工数据集和现实数据集上，本文的方法有效地提取并表征了语义信息，效果超过了四种主流算法。
 
 \newpage\mbox{}\thispagestyle{empty}\newpage
