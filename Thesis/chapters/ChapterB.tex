@@ -8,7 +8,7 @@
 
 
 \section{轨迹压缩方法小结}
-根据Renso等人\citeup{Renso:2013:MDM:2553228}关于轨迹压缩的全面的综述，轨迹压缩的目标大体可以分为三个：（1）减少轨迹数据集的规模，从而使得海量数据达到方便处理的程度； （2）提升轨迹数据集上的计算效率；（3）确保压缩后的轨迹对比压缩前的轨迹没有太大的偏差，或者偏差在一个可接受的阈值内。下面是一些主流的轨迹压缩方法，其大体分为两类：单纯轨迹压缩方法与考虑语义的轨迹压缩方法。下面将展开介绍：
+根据Renso等人\citeup{Renso:2013:MDM:2553228}关于轨迹压缩的全面的综述，轨迹压缩的目标大体可以分为三个：（1）减少轨迹数据集的规模从而使得海量数据达到方便处理的程度；（2）提升轨迹数据集上的计算效率；（3）确保压缩后的轨迹对比压缩前的轨迹没有太大的偏差，或者偏差在一个可接受的阈值内。下面是一些主流的轨迹压缩方法，其大体分为两类：单纯轨迹压缩方法与考虑语义的轨迹压缩方法。下面将展开介绍：
 
 \subsection{单纯轨迹压缩}
 为了解决轨迹数据增长迅速的问题，很多研究者提出了各种轨迹压缩的科技。Sun等人\citeup{sun2016overview}给了一个轨迹压缩的综述。其中，早期的工作多是把轨迹视为一些直线的衔接组合，这就把轨迹压缩变为了欧式空间的线条的简化问题。 例如，早期最出名的Douglas-Peucker算法\citeup{douglas1973algorithms}的思想是，迭代的选出轨迹中间的一些点，使得这些点到去除这个点的线段的垂线距离不超过一个给定阈值范围，这个过程将不断进行，直到剩下的所有点都满足条件。如图\ref{DP}所示，链接$A,F$两点，在一定阈值范围里（红局限的短边长），$D$点是第一个超过阈值的的点，于是把轨迹划分为$AD$与$DF$两段，继续找到阈值外的$C$点。其余点都不超出阈值，于是在简化中被去除。最终，压缩后的轨迹如图\ref{DP}(d)所示。
@@ -26,7 +26,7 @@
 如同Parent等人的研究指出那样，在轨迹上的大多数应用研究分析都要求更多的额外信息了。举个例子，如果要分析解释某个用户的行为动机，那么城市中的额外的信息例如交通地图或者重要的POI点就会很重要。建立在这些额外信息的基础上，则原本时空坐标序列可以被代替为街道的组合，或者重要商店、餐厅的序列。这样，原本普通的原始轨迹就被赋予了丰富的语义信息。
 
 
-\pic[!htb]{语义轨迹压缩（STC）算法示意图\citeup{richter2012semantic}}{width=150mm}{STC}
+\pic[!htb]{语义轨迹压缩（STC）算法示意图\citeup{richter2012semantic}}{width=145mm}{STC}
 
 在这种思路的指引下，很多研究者纷纷加入合适的额外信息。比如Schmid等人\citeup{schmid2009semantic,richter2012semantic} 提出了一种语义轨迹压缩（STC）的方式，其利用城市的道路网，将原始轨迹直接代替成为了这个网络上的节点和边，大大简化了轨迹的表示。STC的基本思路可由图\ref{STC}表示。其中图\ref{STC}(a)是一条原始轨迹序列，(b)中可视化了其在空间中的样貌。在(c)中城市的路网被一起加入可视化，可看到轨迹顺着街道穿梭。在(d)中，这条原始轨迹被用街道衔接组合了起来，成为一个街道的串联。并且每一个节点的用时信息也被保留下来。
 
@@ -79,13 +79,13 @@ $K$为匹配路径$W$的长度，$K$满足条件$\max ( m , n ) < K < m + n - 1$
     \item \textbf{~~连续性：}对于$W$中的任意两个点$w _ { k } = ( i , j )$和$w _ { k + 1 } = \left( i ^ { \prime } , j ^ { \prime } \right)$，要求$i ^ { \prime } \geq i$，要求$i ^ { \prime } - i \leq 1$并且$y ^ { \prime } - y \leq 1$，这个约束要求$X$和$Y$中的每个点都有匹配。
 \end{enumerate}
 
-\pic[!htb]{基于DTW的轨迹相似度示意图\citeup{chen2013dynamic}}{width=150mm}{DTW}
+\pic[!htb]{基于DTW的轨迹相似度示意图\citeup{chen2013dynamic}}{width=140mm}{DTW}
 
 满足以上约束的匹配有许多可能，动态时间规整是要找出其“最好”的匹配， 也就是使$X$和$Y$距离最小的匹配:
 \begin{equation}
 \text{dtw}( X , Y ) = \min \left( \sum _ { k = 1 } ^ { K } d \left( w _ { k } \right) \right)
 \end{equation}
-其中$d(\cdot)$是距离函数，例如$d \left( w _ { k } \right) = d \left( x _ { i } , y _ { j } \right) = \left| x _ { i } - y _ { j } \right|$。在求解两个时间序列的 DTW距离时，动态规划技术尝尝被用来加快寻找最佳匹配的速度。图\ref{DTW}展示了DTW的原理示意图。
+其中$d(\cdot)$是距离函数，例如$d \left( w _ { k } \right) = d \left( x _ { i } , y _ { j } \right) = \left| x _ { i } - y _ { j } \right|$。求解两个时间序列的DTW距离时，动态规划技术可用来加快寻找最佳匹配的速度。图\ref{DTW}展示了DTW的原理示意图。
 
 
 \subsection{轨迹检索}
@@ -105,7 +105,7 @@ $K$为匹配路径$W$的长度，$K$满足条件$\max ( m , n ) < K < m + n - 1$
 
 在分布式向量表达的方法中，最著名的就是word2vec\citeup{mikolov2013distributed}模型。word2vec模型通过在给定语料上进行训练，最终可以实现将词典中的每一个单词映射到同一个向量空间中，定义向量之间的余弦相似性作为向量之间的距离，训练结束后可使得在语义上相似的单词对应的向量距离较小，而不相似的单词之间对应的向量的距离较大。例如“王后”和“国王”的距离比较小，“男孩”与“男人”对应的向量之间的距离较近，但是“北京”和“女孩”对应的向量之间的距离较远。
 
-\pic[!htb]{word2vec学习出的词向量的二维展示图\citeup{mikolov2013distributed}}{width=150mm}{word2vec}
+\pic[!htb]{word2vec学习出的词向量的二维展示图\citeup{mikolov2013distributed}}{width=140mm}{word2vec}
 如图\ref{word2vec}是对word2vec模型学习结果的直观展示。学习到的高维词向量在通过主成分分析等方法降维到二维后，从可视化结果可见“国家”类别的单词之间距离较近，而“首都”类型的单词之间距离较近，但是两种类型的单词之间的距离较远。
 
 除此之外，word2vec模型学习到的向量还满足“线性可加性”。即如果按照余弦相似性在全语料中搜索，可以发现，与$v$(中国)-$v$(北京)+$v$(巴黎)距离最近的向量对应的单词是“法国”。
@@ -117,14 +117,12 @@ $K$为匹配路径$W$的长度，$K$满足条件$\max ( m , n ) < K < m + n - 1$
 word2vec这种方法下有两种具体的模型:CBOW（Continous Bag of Words）模型和Skip-gram模型。两者的不同之处在于：CBOW用目标单词的上下文单词来表征其自己，而Skip-gram模型则用一个目标单词来表征它的上下文单词。下面将详细介绍这两个模型。
 \pic[!htb]{CBOW模型和Skip-gram模型\citeup{mikolov2013distributed}}{width=120mm}{CBOW}
 
-从图\ref{CBOW}中可以看到两个模型都包含三层：输入层，投影层和输出层。CBOW模型是通过一个单词$w_i$的上下文$context(w_i)$，即$\left\{ w _ { i - c } , w _ { i + 1 - c } \cdots w _ { i - 1 } , w _ { i + 1 } \cdots w _ { i + c }\right\}$来对$w_i$进行表征，其中$c$是选取的单词$w_i$的上下文的窗口大小。而skip-gram模型是用目标单词$w_i$来表征它的上下文单词$context(w_i)$。基于CBOW模型的word2vec模型的目标函数是：
-
+从图\ref{CBOW}中可以看到两个模型都包含输入层，投影层和输出层。CBOW模型通过一个单词$w_i$的上下文$context(w_i)$，即$\left\{ w _ { i - c } , w _ { i + 1 - c } \cdots w _ { i - 1 } , w _ { i + 1 } \cdots w _ { i + c }\right\}$来对$w_i$进行表征，其中$c$是选取的单词$w_i$的上下文的窗口大小。而skip-gram模型是用目标单词$w_i$来表征它的上下文单词$context(w_i)$。基于CBOW模型的word2vec模型的目标函数是：
 \begin{equation}
 f ( w ) = \prod _ { w \in C } p ( w | \operatorname { context } ( w ) ) )
 \end{equation}
 
 即在已知每一个单词$w$的上下文$context(w)$出现的情况下，该单词出现的概率最大。整个词库出现的条件概率就是词库中的每一个单词出现的条件概率连乘的结果。因为在取对数之后函数单调性不变，对数变换之后基于CBOW模型的word2vec模型的目标函数就变成:
-
 \begin{equation}
 L = \sum _ { w \in C } \log \left( p \left( w | \operatorname { context } \left( w \right) \right) \right). 
 \end{equation}
@@ -142,7 +140,7 @@ L = \sum _ { w \in C } \log \left( p \left( \operatorname { context } \left( w \
 模型概述：如图\ref{softmax}所示，模型分成了三层，即输入层，投影层和输出层。
 \begin{itemize}
     \item \textbf{~~输入层：}CBOW模型的输入层包含某一个单词$w_i$的上下文$2c$个单词的词向量$v \left( \text {context} ( w ) _ { 1 } \right) , v \left( \text {context} ( w ) _ { 2 } \right) , \ldots , v \left( \text {context} ( w ) _ { 2 c } \right) \in \mathbb { R } ^ { m }$，skip-gram模型在输入层的输入就是一个单词的向量$v(w)$。这里$m$是词向量的维度（长度）。
-    \item \textbf{~~投影层：}CBOW模型的投影层就是将输入层的$2c$个向量求和累加得到$X _ { w } = \sum _ { i = 1 } ^ { 2 c } \operatorname { context } ( w ) _ { i } ) \in \mathbb { R } ^ { m }$，而skip-gram模型的投影层为简单的恒等投影，将 $v(w)$投影到$v(\text{context}(w))$（这种多余的操作是为了和CBOW模型进行对比）。
+    \item \textbf{~~投影层：}CBOW模型的投影层就是将输入层的$2c$个向量求和累加得到$X _ { w } = \sum _ { i = 1 } ^ { 2 c } \operatorname { context } ( w ) _ { i } ) \in \mathbb { R } ^ { m }$，而skip-gram模型的投影层为简单的恒等投影，将 $v(w)$投影到$v(\text{context}(w))$，此操作是为了和CBOW模型对比。
     \item \textbf{~~输出层：}为Huffman树，$N$个叶子结点$(N=|\mathcal{D}|)$分别对应于字典$\mathcal{D}$中的$N$个词，其构造根据词频来进行。非叶子节点共有$N-1$个，对应于图\ref{softmax}中黄色的点，树中叶子结点中的数字代表词频。
 \end{itemize}
 
@@ -167,7 +165,7 @@ L = \sum _ { w \in C } \log \left( p \left( \operatorname { context } \left( w \
 对CBOW模型来说，输出层的输出结果是在已知单词$w$的上下文$\operatorname {context}(w)$出现的条件下，单词$w$出现的条件概率。对于Skip-gram模型，输出层结果的含义是，在已知单词$w$出现的条件下，它的上下文$\operatorname {context}(w)$出现的条件概率。此处首先介绍CBOW模型下的条件概率计算方法。
 
 将Huffman树视为一个多层分类器，树中的每一个非叶子结点看做一个二分类器，指示分类结果应该属于左子树还是右子树。
-假如词典中的所有单词的集合是$\{a,cat,is,climbing,the,tree\}$,按照它们在词典中出现的频率构建一棵如图\ref{softmax}所示的Huffman树，从根结点开始，左分支标记为1表示负类，右分支标记为0表示正类（可以根据个人习惯进行定义，下文都按照这种分类方法就进行阐释）。这样词典中的每一个单词在Huffman树中都有从根结点出发到对应叶子结点结束的唯一路径，也对应唯一一串指示分类结果的编码。以单词“\emph{climbing}”为例，从根节点出发到达“\emph{climbing}”这个叶子结点会经历四次二分类，分类编码是$\{d_{2}^{w}, d_{3}^{w},d_{4}^{w} ,d_{5}^{w}\} = \{1,0,0,1\}$ 。
+假如词典中的所有单词的集合是$\{a,cat,is,climbing,the,tree\}$,按照它们在词典中出现的频率构建一棵如图\ref{softmax}所示的Huffman树，从根结点开始，左分支标记为1表示负类，右分支标记为0表示正类（可以根据个人习惯进行定义，下文都按照这种分类方法就进行阐释）。这样词典中的每一个单词在Huffman树中都有从根结点出发到对应叶子结点结束的唯一路径，也对应唯一的指示分类结果的编码。例如，从根节点出发到达“\emph{climbing}”这个叶结点会经历四次二分类，分类编码是$\{d_{2}^{w}, d_{3}^{w},d_{4}^{w} ,d_{5}^{w}\} = \{1,0,0,1\}$ 。
 
 根据逻辑回归\citeup{harrell2001ordinal}的定义，一个结点被分为正类的概率是
 \begin{equation}
@@ -181,16 +179,6 @@ P^+ =\sigma(x_{w}^{T}\theta )
 是取值范围在${0,1}$之间的sigmoid函数。对应到Huffman树中，$x$应该对应投影层的输出向量$X_w$，$\theta$应该对应Huffman树中的非叶子节点$\theta_{j}^{w}$。
 
 从根节点出发到达“climbing”这个叶子结点经历的四次二分类的概率结果相乘即可得到输出层的条件概率$P(\text{climbing}|\text{context(climbing)})$的值：
-
-% 1. 第一次：$P(d_{2}^{w}|X_w, \theta_{1}^{w}) = 1- \sigma(x_{w}^{T}\theta_{1}^{w})$
-
-% 2. 第二次：$P(d_{3}^{w}|X_w, \theta_{2}^{w}) = \sigma(x_{w}^{T}\theta_{2}^{w})$
-
-% 3. 第三次：$P(d_{4}^{w}|X_w, \theta_{3}^{w}) = \sigma(x_{w}^{T}\theta_{3}^{w})$
-
-% 4. 第四次：$P(d_{5}^{w}|X_w, \theta_{4}^{w}) = 1- \sigma(x_{w}^{T}\theta_{4}^{w})$
-
-
 \begin{equation}
 P(\text{climbing}|\text{context(climbing)}) = \prod_{j=2}^{5}P(d_{j}^{w}|x_w,\theta_{j-1}^{w})
 \end{equation}
@@ -280,7 +268,7 @@ Kuramoto在1975年提出了Kuramoto模型来对同步现象进行了一个刻画
 \subsection{基于矩阵分解的可解释性推荐系统}
 目前，很多可解释推荐模型都是基于矩阵分解的模型进行的，用户和商品的潜在特征被嵌入到低维度的隐空间中，每个维度都代表着用户决策的特定因素。然而，由于隐因子的每个维度的具体含义我们无法得知，整个推荐结果是难以解释的。Zhang等人\citeup{zhang2014explicit}提出了显式因子模型（EFM），其基本思想是向用户推荐在其关心的功能上表现良好的产品，如图\ref{EFM}所示。具体地，该方法从文本用户评论中提取显式的产品特征，并将矩阵分解中的每个潜在维度与特定显式特征对齐，使得分解/预测过程可以是可跟踪的，以提供对推荐结果的明确解释。该方法可以提供伴随着推荐结果的个性化解释，例如，“向您推荐该产品的原因是由于您对特定特征感兴趣，并且该产品在该特征上表现良好”。该模型甚至可以通过告诉用户”产品在您关注的功能上表现不佳”来提供不推荐该产品的原因，这有助于提高推荐系统的可信度。因为用户对项目特征的偏好是动态的，并且可能随着时间而变化，Zhang等人\citeup{zhang2015daily}之后又进一步扩展了该想法，通过了对用户在每天兴趣点的动态变化来动态地建模用户特征。
 
-\pic[!htb]{EFM模型简介\citeup{zhang2014explicit}。(a)基本工作原理为推荐用户关注的特征上表现良好的产品。(b)每一个评论都会转换为用户对特征的态度。(c)抽取出用户-特征矩阵来表现每个用户的关注点，抽取出商品-特征矩阵来体现商品质量。(d)伴随着推荐结果的推荐解释信息。}{width=150mm}{EFM}
+\pic[!htb]{EFM模型简介\citeup{zhang2014explicit}。(a)基本工作原理为推荐用户关注的特征上表现良好的产品。(b)每一个评论都会转换为用户对特征的态度。(c)抽取出用户-特征矩阵来表现每个用户的关注点，抽取出商品-特征矩阵来体现商品质量。(d)伴随着推荐结果的推荐解释信息。}{width=145mm}{EFM}
 
 Chen等人\citeup{chen2016learning}进一步将EFM模型扩展到了张量分解模型上。区别于EFM模型，作者从文本评论中提取了产品特征，并构建了用户与商品的特征多维数据集。基于该多维数据集，文中用商品对来进行排名以预测用户对特征以及商品的偏好，并基于这些预测结果提供个性化推荐。该模型之后又扩展到同时考虑多类产品，这有助于缓解推荐系统中的数据稀疏性问题。
 

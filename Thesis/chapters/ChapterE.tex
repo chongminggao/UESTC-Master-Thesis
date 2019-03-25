@@ -23,8 +23,6 @@
 
 \section{矩阵分解模型及其扩展}
 基于矩阵分解的协同过滤模型的基本假设是将用户和商品用等长的隐向量表示为：\gls{U}$\in \mathbb{R}^{m\times r}$ and \gls{V} $\in \mathbb{R}^{r \times n}$，并使它们的乘积尽量接近\gls{R} $\in \mathbb{R}^{m\times n}$，使得$R \approx UV$。其中$m$是用户数目，$n$是商品数目，$r$是隐空间的秩，满足$r \ll \min(m,n)$。为了防止过拟合，一般会在$U$和$V$上加正则项，整个目标损失为：
-
-
 \begin{equation}
 \label{base}
 \argmin_{U,V} \sum_{(u,i)\in \Omega} (R_{ui}-U_u V_i)^2 + \frac{\lambda_1}{2}\|U\|_F^2 + \frac{\lambda_2}{2}\|V\|_F^2,
@@ -34,8 +32,7 @@
 在协同过滤的场景下，该模型过于笼统，因为它一次考虑所有用户和商品，因此无法正确解释特定用户或商品独特的特征。这就是为什么引进基于局部矩阵近似（Local Matrix Approximation, LMA）的方法的原因。
 
 \subsection{局部分解模型}
-通常情况下，用户仅对一部分商品感兴趣，并且每个商品也吸引不到所有用户。因此，评分数据中存在很多子簇，为了在挖掘这些子簇结构，很多工作\citeup{lee2013local,zhang2014understanding,chen2015wemarec,li2017mixture,zhao2017collaborative,zhang2017local}提出了各自的解决方案。如果全局的矩阵分解只能表达一种“共同利益”，那么LMA则可以发现特定用户或商品拥有的“独特兴趣”。损失函数可以写成如下：
-
+通常情况下，用户仅对一部分商品感兴趣，且每个商品也吸引不到所有用户。因此，评分数据中存在很多子簇。为了挖掘这些子簇结构，很多工作\citeup{lee2013local,zhang2014understanding,chen2015wemarec,li2017mixture,zhao2017collaborative,zhang2017local}提出了各自的解决方案。如果全局的矩阵分解只能表达一种“共同利益”，那么LMA则可以发现特定用户或商品拥有的“独特兴趣”。损失函数可以写成如下：
 \begin{equation}
 \label{localMF}
 \argmin_{U^{(1\cdots K)},V^{(1\cdots K)}} \sum_{(u,i)\in \Omega} (R_{ui}- \sum_{k=1}^K{U^{(k)}_uV^{(k)}_i})^2 + \frac{\lambda_1}{2}\sum_{k=1}^K\|{U^{(k)}}\|_F^2 + \frac{\lambda_2}{2}\sum_{k=1}^K\|{V^{(k)}}\|_F^2,
@@ -46,7 +43,7 @@
 
 
 \begin{figure}[t!]
-\includegraphics[width=\textwidth]{pics/compare.pdf}
+\includegraphics[width=145mm]{pics/compare.pdf}
 \caption{三种不同模型的工作原理。} \label{compare}
 \end{figure}
 我们在图\ref{compare}中说明了非负矩阵分解（NMF），奇异值分解（SVD）和LMA工作原理。假设在潜在空间中存在三个簇，其代表三种主题，例如为中餐，印度餐馆和墨西哥餐馆。x轴和y轴可以表示辣的程度以及与市中心的距离等一些高级特征。从图中可以看到NMF和SVD可以准确地近似矩阵，但是他们不能直接发现商品中的三个主题，这是因为他们只追求潜在因素的组合应该接近训练集中的评分值。而LMA模型首先就探索了用户和商品之间的相关性，因此可以轻松区分每一个主题，使得发现的隐向量更直观和可解释。
@@ -128,7 +125,7 @@ d(u_1,u_2) = \arccos(\frac{R_{u_1,\cdot}^{(k)} (R^{(k)}_{u_2,\cdot})^T}{\|R^{(k)
 \big(\beta V^{(k)} + (1-\beta)V^{(k)}T\big)\Big)\Big)\Big\|^2_F \notag\\
 & + \frac{\lambda_1}{2}\|{U^{(k)}}\|_F^2 + \frac{\lambda_2}{2}\|{V^{(k)}}\|_F^2,
 \end{align}
-其中$U^{(k)} \in \mathbb{R}^{m\times1}$是一个表示所有用户的列向量（一维表示一个用户），$V^{(k)} \in \mathbb{R}^{1\times n}$ 是一个表示所有商品的行向量。$S\in\mathbb{R}^{m\times m}$和$T\in\mathbb{R}^{n\times n}$是用户和地点的邻接矩阵，我们将其归一化使得$\sum_u S(\cdot,u)=1$ and $\sum_i T(i,\cdot)=1$。 $\alpha$和$\beta$控制用户、商品自身和邻居所占比重的稀疏。$\mathcal{I}$是一个只是函数，如果$\mathbb{I}_{u,i} = 1$，则用户$u$曾经在地点$i$进行过交互。$g(x) = 1/(1+e^{-x})$是逻辑斯蒂函数。让不同的数据集有相同的尺度。注意评分矩阵$R$已经归一化到$(0,1)$的范围内了。\citeup{ma2011learning}.
+其中$U^{(k)} \in \mathbb{R}^{m\times1}$是一个表示所有用户的列向量（一维表示一个用户），$V^{(k)} \in \mathbb{R}^{1\times n}$ 是一个表示所有商品的行向量。$S\in\mathbb{R}^{m\times m}$和$T\in\mathbb{R}^{n\times n}$是用户和地点的邻接矩阵，我们将其归一化使得$\sum_u S(\cdot,u)=1$ and $\sum_i T(i,\cdot)=1$。 $\alpha$和$\beta$控制用户、商品自身和邻居所占比重的稀疏。$\mathcal{I}$是一个只是函数，如果$\mathbb{I}_{u,i} = 1$，则用户$u$曾经在地点$i$进行过交互。$g(x) = 1/(1+e^{-x})$是逻辑斯蒂函数。让不同的数据集有相同的尺度。注意评分矩阵$R$已经归一化到$(0,1)$的范围内了。
 
 残差矩阵$R^{(k+1)}$可由集成学习的思想计算为：
 \begin{equation}
@@ -185,7 +182,7 @@ $U = [U^{(1)}, U^{(2)}, \cdots, U^{(k)}]$; $V = [V^{(1)}; V^{(2)}; \cdots; V^{(k
 本次试验用到了两个真实推荐数据集：Filmtrust \footnote{\url{https://www.librec.net/datasets.html}}和Yelp \footnote{\url{https://www.yelp.com/dataset}}。其中Filmtrust数据只有社交信息没有商品属性，而Yelp有用户和商品的网络信息。为了方便，我们用一种简单的方法构造地点网络，即如果两个地点间的距离小于$d$的话，它们将以$p$的概率在地点网络上产生一条连边。本文我们设置$d=50$千米，$p = 0.01$。Yelp数据集中，我们移除了评分不够$100$的用户以及评分不够$200$的商品。表\ref{tab:datasets}总结了两个数据集的统计信息。
 
 \tabcolsep=3pt
-\begin{table}[!bt]\renewcommand{\arraystretch}{1.3}
+\begin{table}[!b]\renewcommand{\arraystretch}{1.3}
 \caption{两个数据集的统计信息}
 \center
 \footnotesize
