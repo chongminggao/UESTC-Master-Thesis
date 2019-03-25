@@ -2,6 +2,10 @@
 
 \chapter{全局语义轨迹压缩算法}
 \label{chapter:main1}
+
+理论上，我们可以每秒为单位来记录移动物体的轨迹信息。但是，这将会耗费大量诸如存储空间以及通信资源，并在计算上产生不小的开销。实际上，许多应用场景不要求非常精准的位置信息。为此，研究者们提出了轨迹数据压缩的算法来将海量的轨迹压缩至可接受的开销范围内。本章中我们将提出一种全新的轨迹压缩算法，来克服上一章提到的传统压缩算法的缺点。
+
+
 \section{轨迹压缩问题全新切入点}
 \label{sec:start}
 就如同上一章中回顾的那样，主流的轨迹压缩有两种：将轨迹视为线条组合的传统轨迹压缩方法和加入各种额外信息的语义轨迹压缩法。后者很好的考虑了城市中例如POI或者道路网的约束，从而在压缩结果中保留有用的语义信息。然而有一个问题始终无法得到解决：轨迹压缩的性能始终被语义信息的质量所决定：如果道路网部分缺失、或者POI信息不全，那么基于这些信息的轨迹表征方法将大大收到影响。
@@ -34,7 +38,7 @@
 
 接下来，我们正式地介绍语义ROI。精确建模轨迹数据中的位置信息在基于地理位置的服务中具有重要意义。由于在许多应用中，由GPS坐标表示的位置不足以支持有效的挖掘任务，我们为了从人类移动性中提取模式，就需要定义活动的位置信息来描述移动对象。有了领域知识之后，可以将轨迹转换为诸如住所，公交车站和学校之类的序列。因此，这使得算法支持涉及语义含义的查询，例如，“给出在某个建筑物钱停留半小时并在8点钟左右通过公交车站的可疑人员”。
 
-到目前为止，有许多算法专门用于自动检测和推断物体的重要位置，比如在轨迹模式挖掘中的工作\cite{giannotti2007trajectory,liao2007extracting,wang2013mining}，在推荐系统中的工作\cite{tsai2015location,zheng2011recommending,si2017ctf}，以及在路径分类中的工作\cite{lee2008traclass,lv2015measuring}。然而，这些传统的工作的基本思想是简单地将地图分成多个网格或将原始GPS点分组到一些聚类簇中，仍然没办法表示现实中的重要结点。如Richter在其论文\cite{richter2012semantic}中所述，语义应该明确定义为先验知识。在他们的工作中，重要的城市基础设施比如酒店、大饭点、旅游场所和主要交叉路口都可以被定义为节点；而所有节点可以利用经过这些结点的轨迹扩展为一个网络。我们将这些节点称为语义ROI。通过聚类和地图匹配技术，所有原始GPS点都将被投射到那些语义ROI上。
+到目前为止，有许多算法专门用于自动检测和推断物体的重要位置，比如在轨迹模式挖掘中的工作\citeup{giannotti2007trajectory,liao2007extracting,wang2013mining}，在推荐系统中的工作\citeup{tsai2015location,zheng2011recommending,si2017ctf}，以及在路径分类中的工作\citeup{lee2008traclass,lv2015measuring}。然而，这些传统的工作的基本思想是简单地将地图分成多个网格或将原始GPS点分组到一些聚类簇中，仍然没办法表示现实中的重要结点。如Richter在其论文\citeup{richter2012semantic}中所述，语义应该明确定义为先验知识。在他们的工作中，重要的城市基础设施比如酒店、大饭点、旅游场所和主要交叉路口都可以被定义为节点；而所有节点可以利用经过这些结点的轨迹扩展为一个网络。我们将这些节点称为语义ROI。通过聚类和地图匹配技术，所有原始GPS点都将被投射到那些语义ROI上。
 
 然而，如我们之前所述，当语义ROI不足以覆盖城市的每个角落时，即先验知识稀疏时，压缩结果中将会被引入大量的误差。而本文可以解决这个缺陷，我们的目标是通过有限的语义信息来进行轨迹压缩。
 
@@ -42,7 +46,7 @@
 在本节中，我们将介绍\CascadeSync算法，首先我们介绍如何用同步聚类算法来检测到ROI。之后在将语义ROI融合进这个过程中，让检测出的结果具有语义。最后再阐述如何将这个过程扩展为一个多层次的多粒度压缩算法。
 
 \subsection{基于同步算法的重要区域检测}
-通常，基于同步的聚类算法需要三个关键点来实现：首先是交互参数\gls{epsilon}的定义，其用来指定对象之间的交互范围；第二，用于聚类的交互模型，最后是终止动态聚类的停止标准。我们的方法遵循并扩展了算法ync的基于同步的聚类\cite{bohm2010clustering}。
+通常，基于同步的聚类算法需要三个关键点来实现：首先是交互参数\gls{epsilon}的定义，其用来指定对象之间的交互范围；第二，用于聚类的交互模型，最后是终止动态聚类的停止标准。我们的方法遵循并扩展了算法ync的基于同步的聚类\citeup{bohm2010clustering}。
 
 首先给出交互参数$\epsilon$的定义：
 \begin{dingyi}[$\epsilon$-Range Neighborhood]
@@ -144,14 +148,14 @@ $layer = 0;\epsilon = {\epsilon}_0$\;
 
 \While{layer $\le \mathcal{L}_M$}{
 % \While{True}{
-$\mathcal{P}_{layer+1}$ = \Sync{$\mathcal{P}_{layer},\mathcal{ROI}_{s}, \epsilon$};\Comment{Fig. \ref{CascadeSync}}\\
+$\mathcal{P}_{layer+1}$ = \Sync{$\mathcal{P}_{layer},\mathcal{ROI}_{s}, \epsilon$};\Comment{图 \ref{CascadeSync}}\\
 % \lIf{\emph{Number of $\mathcal{P}_{layer}$ keeps unchanged}}{\textbf{break}}
 % }
 $layer = layer + 1; \epsilon = \epsilon + \triangle\epsilon$\;
 }
 
 ROI集合：$\mathcal{ROI} = \mathcal{P}_{layer}$\;
-ROI网络的构造：$\mathcal{E}$ = \ROINetworkConstructor($\mathcal{ROI},\mathcal{T}$); \Comment{Fig. \ref{multi},\ref{roadmap}}\\
+ROI网络的构造：$\mathcal{E}$ = \ROINetworkConstructor($\mathcal{ROI},\mathcal{T}$); \Comment{图 \ref{multi},\ref{roadmap}}\\
 
 \BlankLine
 
@@ -270,10 +274,10 @@ $\mathcal{T}_q = \texttt{Intersect}(\mathcal{T}^1, \mathcal{T}^2, \cdots, \mathc
 \section{实验}
 在本节中，我们将用实验来评估算法\CascadeSync的性能。为了揭示 \CascadeSync在不同语义条件下的鲁棒性，我们分别在包含和不包含预定义语义ROI的数据集上设计实验。我们还进行实验以证明\CascadeSync的一些良好性质，并将我们的算法的性能与一些国际主流算法进行比较。此外，实验还给出了时空查询的例子，以显示我们的模型在轨迹检索任务中的有效性。
 
-\subsection{实验准备工作}
+\subsection{实验准备}
 \vspace{3mm}
 \noindent\textbf{人工数据集。} 
-为了证明我们算法的基本性质，我们使用概率路径规划算法\cite{kavraki1996probabilistic}在给定随机起点和终点的情况下，生成了一个$100\times100$米矩形框中的，该算法在 MATLAB 2016b中实现为\texttt{robotics.PRM}类。为了定义轨迹中的语义，我们随机选择30个点作为语义ROI。 图\ref{fig:syntheticData}(a)里显示了生成的数据集，其中有100条随机轨迹，其中浅蓝色三角形为被选取的语义ROI。
+为了证明我们算法的基本性质，我们使用概率路径规划算法\citeup{kavraki1996probabilistic}在给定随机起点和终点的情况下，生成了一个$100\times100$米矩形框中的，该算法在 MATLAB 2016b中实现为\texttt{robotics.PRM}类。为了定义轨迹中的语义，我们随机选择30个点作为语义ROI。 图\ref{fig:syntheticData}(a)里显示了生成的数据集，其中有100条随机轨迹，其中浅蓝色三角形为被选取的语义ROI。
 
 
 \tabcolsep=0pt
@@ -292,7 +296,7 @@ $\mathcal{T}_q = \texttt{Intersect}(\mathcal{T}^1, \mathcal{T}^2, \cdots, \mathc
 
 \vspace{3mm}
 \noindent\textbf{真实数据集。} 
-我们在著名的四个真实数据集上实现我们的算法: Geolife\footnote{\url{https://www.microsoft.com/en-us/research/publication/geolife-gps-trajectory-dataset-user-guide/}}, T-drive\footnote{\url{https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/}}, Hurricanes\footnote{\url{http://www.nhc.noaa.gov/data/hurdat/}}和Migration\footnote{\url{https://www.datarepository.movebank.org/handle/10255/move.655}}。其中Geolife是Zheng等人\cite{zheng2008understanding,zheng2009mining,zheng2010geolife}从人们的真实出行数据中收集记录下来的。T-drive数据集是Yuan等人\cite{yuan2010t,yuan2011driving}从Uber司机出记录下的轨迹数据。Geolife和T-Drive都是北京市的数据集，其主要区别在于采样率， Geolife大约$91\%$的轨迹都很密集，两点之间间隔1-5秒或者5-10米，而T-Drive数据集的采样率就很低，大约2-5分钟才采样一个点。Hurricanes数据集记录了大西洋1851-2018年的数据，已经在图\ref{Hurricane_raw}中进行了可视化。Migration数据集记录了南美洲候鸟迁徙的轨迹。这四个数据集都是以经纬度和采样时间呈现的，统计数据见表\ref{tab:datasets}.
+我们在著名的四个真实数据集上实现我们的算法: Geolife\footnote{\url{https://www.microsoft.com/en-us/research/publication/geolife-gps-trajectory-dataset-user-guide/}}, T-drive\footnote{\url{https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/}}, Hurricanes\footnote{\url{http://www.nhc.noaa.gov/data/hurdat/}}和Migration\footnote{\url{https://www.datarepository.movebank.org/handle/10255/move.655}}。其中Geolife是Zheng等人\citeup{zheng2008understanding,zheng2009mining,zheng2010geolife}从人们的真实出行数据中收集记录下来的。T-drive数据集是Yuan等人\citeup{yuan2010t,yuan2011driving}从Uber司机出记录下的轨迹数据。Geolife和T-Drive都是北京市的数据集，其主要区别在于采样率， Geolife大约$91\%$的轨迹都很密集，两点之间间隔1-5秒或者5-10米，而T-Drive数据集的采样率就很低，大约2-5分钟才采样一个点。Hurricanes数据集记录了大西洋1851-2018年的数据，已经在图\ref{Hurricane_raw}中进行了可视化。Migration数据集记录了南美洲候鸟迁徙的轨迹。这四个数据集都是以经纬度和采样时间呈现的，统计数据见表\ref{tab:datasets}.
 
 
 \tabcolsep=1pt
@@ -356,16 +360,16 @@ $\mathcal{T}_q = \texttt{Intersect}(\mathcal{T}^1, \mathcal{T}^2, \cdots, \mathc
 \vspace{3mm}
 \noindent\textbf{对比算法的选取。}
 由于在包含语义约束的数据中，轨迹压缩方法的性能不便于直接比较，我们为了证明\CascadeSync的有效性和高效性，使用五种主流的的轨迹压缩算法在特定实验上进行比较。
-\emph{Douglas-Peucker} \cite{douglas1973algorithms}: 是最有名的线简化算法，它使用贪婪策略检查第一个和最后一个点之间的所有点，直到最大空间偏差在误差范围$\zeta$内。算法复杂度为$\mathcal{O}(n^2)$.
+\emph{Douglas-Peucker} \citeup{douglas1973algorithms}: 是最有名的线简化算法，它使用贪婪策略检查第一个和最后一个点之间的所有点，直到最大空间偏差在误差范围$\zeta$内。算法复杂度为$\mathcal{O}(n^2)$.
 
-\emph{Douglas-Peucker-SED} \cite{meratnia2004spatiotemporal,potamias2006sampling}：是原算法的改版。其充分考虑了移动物体的时空特性，将原始的垂直距离度量换位了同步欧式距离（Synchronized Euclidean Distance, SED）。最坏的时间复杂度为$\mathcal{O}(n^2)$。
+\emph{Douglas-Peucker-SED} \citeup{meratnia2004spatiotemporal,potamias2006sampling}：是原算法的改版。其充分考虑了移动物体的时空特性，将原始的垂直距离度量换位了同步欧式距离（Synchronized Euclidean Distance, SED）。最坏的时间复杂度为$\mathcal{O}(n^2)$。
 
-\emph{Dead Reckoning} \cite{trajcevski2006line,muckell2011squish}：它是一种在线压缩模型。原理是通过当前位置和速度估算每个后继位置。通过计算估计位移和真实位置之间的偏差，如果偏差小于误差界限，则可以将点保持在压缩轨迹之外。时间复杂性是$\mathcal{O}(n)$。
+\emph{Dead Reckoning} \citeup{trajcevski2006line,muckell2011squish}：它是一种在线压缩模型。原理是通过当前位置和速度估算每个后继位置。通过计算估计位移和真实位置之间的偏差，如果偏差小于误差界限，则可以将点保持在压缩轨迹之外。时间复杂性是$\mathcal{O}(n)$。
 
-\emph{Squish} \cite{muckell2011squish,muckell2014compression}：使用了一个优先级队列，其中每个点的优先级被定义为若将该点的移除带来的误差。SQUISH通过从优先级队列中删除最低优先级的点来压缩每一条轨迹，直到达到目标压缩比或误差界限。Squish的时间复杂度为
+\emph{Squish} \citeup{muckell2011squish,muckell2014compression}：使用了一个优先级队列，其中每个点的优先级被定义为若将该点的移除带来的误差。SQUISH通过从优先级队列中删除最低优先级的点来压缩每一条轨迹，直到达到目标压缩比或误差界限。Squish的时间复杂度为
 $\mathcal{O}(\log n)$.
 
-\emph{Traclus-MDL} \cite{lee2007trajectory}：是一种固定压缩率的算法，其用最小描述长度（MDL）\cite{grunwald2005advances}来综合地描述模型的复杂度和表征能力，然后输出最平衡的一个压缩结果。其时间复杂度为$\mathcal{O}(n)$.
+\emph{Traclus-MDL} \citeup{lee2007trajectory}：是一种固定压缩率的算法，其用最小描述长度（MDL）\citeup{grunwald2005advances} 来综合地描述模型的复杂度和表征能力，然后输出最平衡的一个压缩结果。其时间复杂度为$\mathcal{O}(n)$.
 
 我们可以在给定误差范围的情况下与这些基线算法进行比较压缩比。此外，也可列出所有模型的压缩时间以比较效率。此外，我们还说明了\CascadeSync中语义ROI带来的影响。
 
@@ -382,7 +386,7 @@ $\mathcal{O}(\log n)$.
 \noindent\textbf{表征误差分析}
 与独立压缩每个轨迹的传统方法不同，我们基于同步的聚类模型 \CascadeSync将全局地压缩轨迹，并且代表性错误可以以很高地概率满足由$\zeta$的约束。我们将探索误差约束$\zeta$和交互范围$\epsilon$之间的关系。
 
-在不失一般性的情况下，我们在Geolife数据集上进行此实验。24,876,978个GPS点将被\Cascade表征为不同层次的ROI网络。我们将交互范围$\epsilon$从200米到2000米均匀地选择十次，大约是地图长度的$6/1000$到$60/1000$。通过增加\CascadeSync中每层的交互范围，可以在不同级别的交互范围下计算所有点的平均代表性误差。其结果如图\ref{fig:relation}中的框图所示。框中的水平红线是中值，则蓝框的上边界是第三个四分位数，黑色虚线的上端表示最大值，超出最大值的红线被视为异常值。
+在不失一般性的情况下，我们在Geolife数据集上进行此实验。24,876,978个 GPS点将被\Cascade表征为不同层次的ROI网络。我们将交互范围$\epsilon$从200米到2000米均匀地选择十次，大约是地图长度的$6/1000$到$60/1000$。通过增加\Cascade中每层的交互范围，可以在不同级别的交互范围下计算所有点的平均代表性误差。其结果如图\ref{fig:relation}中的框图所示。框中的水平红线是中值，则蓝框的上边界是第三个四分位数，黑色虚线的上端表示最大值，超出最大值的红线被视为异常值。
 
 没有预定义语义ROI的实验结果如图\ref{fig:relation}(a)所示，我们可以观察到误差最大值与交互范围$\epsilon$成正比，并且近似等于$\epsilon$。实际上，有$97.64\%$的点的表征误差小于$\epsilon$。换句话说，如果我们设置误差界为$\zeta=\epsilon$，没有语义ROI的\CascadeSync的结果将被$\zeta$以大于$0.9764$的概率约束住。
 
@@ -394,7 +398,7 @@ $\mathcal{O}(\log n)$.
 \begin{figure}[!htb]
 \centering
 % \footnotesize
-\vspace{-2mm}
+% \vspace{-2mm}
 \begin{tabular}{cc}
 \includegraphics[width=70mm]{pics/relation_without2.pdf}&
 \includegraphics[width=68mm]{pics/relation_with2.pdf}\\
@@ -442,7 +446,7 @@ $\mathcal{O}(\log n)$.
 \end{minipage}
 }\\
 \end{tabular}
-\caption{The ROI networks on different data sets with the different error bounds. In each subfigure, the left-hand side ROI network is generated without semantic ROIs, and the right-hand side ROI network is generated with 1000 random selected intersections. The size of ROI is proportional to the node weight (i.e., the number of raw GPS coordinates each ROI represented). The edge width and color shade are proportional to the transportation flow of two ending ROIs. }
+\caption{ROI网络在在不同的数据集上不同误差界的结果。在每一个子图中，左手边的ROI网络是没有固定语义ROI的约束的结果，右边的结果加入了1000个随机选择的十字路口。}
 \label{fig:illustration}
 \end{figure*}
 
@@ -480,8 +484,8 @@ $\mathcal{O}(\log n)$.
 
 \tabcolsep=2pt
 \begin{table}[!htb]\renewcommand{\arraystretch}{1.3}
+% \vspace{1mm}
 \caption{在四个数据集上的速率对比，单位：秒.}
-% \vspace{-3mm}
 \center
 \small
 \begin{tabular}{lcccccc}
@@ -497,7 +501,7 @@ $\mathcal{O}(\log n)$.
 \end{table}
 
 
-\tabcolsep=2pt
+\tabcolsep=5pt
 \begin{table*}[!htb]\renewcommand{\arraystretch}{1.3}
 \caption{Geolife数据集上的时空查询结果。}
 % \vspace{1mm}
@@ -557,5 +561,6 @@ ROI网络是轨迹数据的一种紧凑表示，在ROI网络上可以总结全�
 % \vspace{-2mm}
 \section{本章小结}
 % \vspace{-2mm}
-在本章中，我们为了将给定的轨迹数据集表示为多层次ROI网络，提出了基于同步的语义轨迹压缩算法\CascadeSync。在同步聚类的概念下，\CascadeSync算法允许在可用语义信息存在与缺失的情况下都能产生多分辨率轨迹抽象表征结果（分层ROI网络）。 更重要的是，抽象的轨迹表示很好地保留了全局轨迹信息，并且很方便各种语义信息的集成。而对于轨迹流，我们开发了一种简单的基于窗口合并以及分离的方法来进行在线处理。我们在人工数据和四个真实数据集上进行多项实验，证明了提出方法相比起国际主流方法的有效性和高效性。
-% \newpage\mbox{}\thispagestyle{empty}\newpage
+在本章中，我们为了将给定的轨迹数据集表示为多层次ROI网络，提出了基于同步的语义轨迹压缩算法\CascadeSync。在同步聚类的概念下，\CascadeSync
+算法允许在可用语义信息存在与缺失的情况下都能产生多分辨率轨迹抽象表征结果（分层ROI网络）。 更重要的是，抽象的轨迹表示很好地保留了全局轨迹信息，并且很方便各种语义信息的集成。而对于轨迹流，我们开发了一种简单的基于窗口合并以及分离的方法来进行在线处理。我们在人工数据和四个真实数据集上进行多项实验，证明了提出方法相比起国际主流方法的有效性和高效性。
+\newpage\mbox{}\thispagestyle{empty}\newpage

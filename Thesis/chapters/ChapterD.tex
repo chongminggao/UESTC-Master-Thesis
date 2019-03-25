@@ -2,6 +2,10 @@
 
 \chapter{分布式轨迹语义表征}
 \label{chapter:main2}
+
+要在轨迹上进行信息挖掘，首先需要在轨迹上定义一个空间，使得轨迹中蕴含的语义可以得到表示，同时使不同轨迹之间感兴趣的相似度能够得到衡量。在不同的场景下，研究者们纷纷提出利于自己算法运行的轨迹表征方法，然而根据应用定下的表征通常没有普适性。为此，本文提出了一种鲁班的轨迹表征方法，使得各种感兴趣的语义都能根据需求融入此表征方法中，进而为后续轨迹挖掘任务打下基础。
+
+
 \section{全新轨迹表征的动机与解决思路}
 如上文所述，传统的轨迹挖掘算法汇总，轨迹通常有三种表征方式：基于采样点的表征、基于线段的表征以及基于特征的表征。然而这三种表征方式在现在的挖掘需求中都有不足：主要关注地理信息，几乎没有考虑具体的语义知识。因此，在表征上建立的索引系统将给后续挖掘任务带来很多限制。
 
@@ -57,7 +61,7 @@
 
 图\ref{fig:context}给出了ROI邻居的示意图，其中紫色圆圈代表的${ROI}_j$是目标${ROI}_i$的一个语义邻居. 虽然它们在网络上的跳数超过了$W=2$跳，但明显${ROI}_j$的语义信息与${ROI}_i$的相似度比其他ROI要大。
 
-一旦获得几何和语义邻域，我们就可以将ROI嵌入到高维空间中，这一步借用了带有负抽样（SGNS）架构的思想\cite{mikolov2013distributed}。
+一旦获得几何和语义邻域，我们就可以将ROI嵌入到高维空间中，这一步借用了带有负抽样（SGNS）架构的思想\citeup{mikolov2013distributed}。
 
 \vspace{3mm}
 \textbf{嵌入模型。}给定一个轨迹数据集$\mathcal{T}$，在ROI网络上的任意一层，假设$w$是一个该层的ROI，$N(w)$是$w$两种类型邻居的集合，$NEG(w)$表示$w$的负样本集合。则定义从任意$u\in{N(w)}$转移到任意一个目标ROI$v$的概率如下：
@@ -120,7 +124,7 @@ L_{V^l} = \sum_{w\in{\mathcal{ROI}^l}}\frac{1}{2}||\vec{t_w}-\vec{t_{\pi(w)}}||^
 \end{equation}
 其中$\tau_i^l$是${ROI}^l_i$的权值，代表了轨迹$T$停留在${ROI}^l_i$的时间。注意这里也可以用更复杂的测量来求的轨迹的嵌入向量，比如加入衰减函数等。
 
-值得注意的是，虽然这种获得轨迹向量的方式比起一些复杂的方法，比如，工作\cite{socher2011dynamic,kalchbrenner2014convolutional,tai2015improved}要简单得多，但是简单的加权模型也非常的有效\cite{blacoe2012comparison}。Wieting等人 \cite{wieting2015towards}甚至证明了简单的加权模型性能要比复杂的神经网络要更好。再者，简单加权也是符合常识的：轨迹总是由采样点构成的。
+值得注意的是，虽然这种获得轨迹向量的方式比起一些复杂的方法，比如，工作\citeup{socher2011dynamic,kalchbrenner2014convolutional,tai2015improved}要简单得多，但是简单的加权模型也非常的有效\citeup{blacoe2012comparison}。Wieting等人 \citeup{wieting2015towards}甚至证明了简单的加权模型性能要比复杂的神经网络要更好。再者，简单加权也是符合常识的：轨迹总是由采样点构成的。
 
 
 \begin{algorithm}[!t]
@@ -149,7 +153,7 @@ L_{V^l} = \sum_{w\in{\mathcal{ROI}^l}}\frac{1}{2}||\vec{t_w}-\vec{t_{\pi(w)}}||^
 \ForEach {\emph{迭代数} $k \in \{1,2,\cdots,K\}$}{
 \ForEach {\emph{层} $l \in \{1,2,\cdots,L_M-1\}$}{
 % \ForEach {\emph{trajectory} $T^l=\{{ROI}^l_1,\cdots,{ROI}^l_{n^l}\}\in\mathcal{T}^l$}{
-\ForEach {\emph{ROI} $w \in \mathcal{ROI}^l$ \emph{on the ROI network}}{
+\ForEach {\emph{ROI网络上的节点} $w \in \mathcal{ROI}^l$}{
 找寻$w$的两种邻居$N(w)$\;
 对$w$进行负采样$NEG(w)$\;
 \ForEach {$u \in N(w)$}{
@@ -171,7 +175,7 @@ $\vec{s_{\pi(u)}} = \vec{s_{\pi(u)}} + \eta\alpha(\vec{s_{u}} - \vec{s_{\pi(u)}}
 \lForEach {${ROI}_i \in \mathcal{ROI}$}{
 vec$({ROI}_i) =[\vec{s_i}, \vec{t_i}]$
 }
-\lForEach {\emph{轨迹} $T\in\mathcal{T}$}{计算 $vec(T)$ via Eq.(\ref{eq:traVector})}
+\lForEach {\emph{轨迹} $T\in\mathcal{T}$}{用式(\ref{eq:traVector})计算 $vec(T)$ }
 % \ForEach {trajectory $T=\{{ROI}_1,{ROI}_2,\cdots,{ROI}_n\}\in\mathcal{T}$}{
 % vec$(T) =\sum_i{\text{vec}(ROI}_i)$; //Obtain the trajectory vector \\
 % }
@@ -188,11 +192,11 @@ vec$({ROI}_i) =[\vec{s_i}, \vec{t_i}]$
 ROI嵌入模型的时间复杂度为$O(K \times N\times N_1\times N_2)$，其中$N$是点的数目，$N_1$是两种邻居的平均数量，$N_2$是负采样的样本个数，$K$是迭代的次数。
 
 \section{实验}
-\subsection{实验准备}
+\subsection{实验设置}
 
 \vspace{3mm}
 \noindent\textbf{人工数据集}
-和上一章节一样的方法，我们用概率路径规划算法\cite{kavraki1996probabilistic}生成50条随机轨迹。我们随机选择10个点作为关键节点，并确保每个关键节点至少有一条轨迹通过。 语义ROI和轨迹检索任务旨在检测与这些关键点高度相关的ROI和轨迹。
+和上一章节一样的方法，我们用概率路径规划算法\citeup{kavraki1996probabilistic}生成50条随机轨迹。我们随机选择10个点作为关键节点，并确保每个关键节点至少有一条轨迹通过。 语义ROI和轨迹检索任务旨在检测与这些关键点高度相关的ROI和轨迹。
 
 \vspace{3mm}
 \noindent\textbf{真实数据集}
@@ -202,7 +206,7 @@ ROI嵌入模型的时间复杂度为$O(K \times N\times N_1\times N_2)$，其中
 % \tabcolsep=1pt
 \begin{table}[!htb]\renewcommand{\arraystretch}{1.3}
 % \vspace{-5mm}
-\caption{Information of four real-world data sets}
+\caption{四个真实数据集的统计信息}
 % \vspace{-3mm}
 \center
 \small
@@ -272,8 +276,6 @@ Chengdu
 \end{equation}
 其中$rel_i$是位置$i$处的相关度。为了试验更加清晰，我们采用5个级别的相关度。
 
-
-
 \tabcolsep=0.5pt
 % \vspace{-4mm}
 \begin{figure}[!b]
@@ -285,8 +287,11 @@ Chengdu
 \label{fig:synNDCG}
 \end{figure}
 
+
+
 \subsection{人工数据集上的验证}
-在人工数据集上，我们设定交互范围 $\epsilon = \{2,4,6,8,10\}(m)$，运用\CascadeSync 算法后得到一个5层的ROI网络。最下面的一层可视化在图\ref{fig:syn}(b)中。
+在人工数据集上，我们设定交互范围 $\epsilon = \{2,4,6,8,10\}(m)$，运用\CascadeSync
+算法后得到一个5层的ROI网络。最下面的一层可视化在图\ref{fig:syn}(b)中。
 
 
 \vspace{1.5mm}
@@ -296,16 +301,13 @@ Chengdu
 在ROI和轨迹的嵌入向量的基础上，我们搜索最相似的ROI。实验在随机生成的数据集上独立重复100次。得到的平均准确度为$\boldsymbol{99.64\%}$，这证明了关键点的语义成功地整合到嵌入表示中，并且可以有效地检测到关键点。
 
 
-\subsubsection{人工数据集上的语义轨迹检测结果。}
-我们在轨迹层面上进行类似的实验，目的是检索与包含最多关键ROI相似的目标轨迹。因此，类似的轨迹应包含尽可能多的关键ROI。我们计算并确定其余49个轨迹与目标的相似度，并使用NDCG@k，即式(\ref{eq:NDCG})来给定排名。在图\ref{fig:syn}(c)中我们可视化了最相似的轨迹，其中绿色轨迹的颜色深浅与检索顺序成正比。此外，我们使用第一层ROI网络（具有关键ROI标签的最佳级别）上的四个对比算法进行相同的实验。结果如图\ref{fig:synNDCG}所示。实验重复100次，阴影部分给出平均NDCG@k值的标准偏差。从图中可以看出，我们的模型优于其他四个模型，很好地捕获了语义信息。
-
 
 \tabcolsep=2pt
 \begin{figure}[!t]
 \centering
 % \vspace{-2mm}
 % \footnotesize
-\begin{tabular}{ccccc}
+\begin{tabular}{cc}
 \includegraphics[width=65mm]{pics/SP3.pdf}&
 \includegraphics[width=65mm]{pics/SP4.pdf}\\
 (a) 没有语义信息 & (b) 有语义信息
@@ -317,12 +319,17 @@ Chengdu
 \label{fig:regionSim}
 \end{figure}
 
+\subsubsection{人工数据集上的语义轨迹检测结果。}
+我们在轨迹层面上进行类似的实验，目的是检索与包含最多关键ROI相似的目标轨迹。因此，类似的轨迹应包含尽可能多的关键ROI。我们计算并确定其余49个轨迹与目标的相似度，并使用NDCG@k，即式(\ref{eq:NDCG})来给定排名。在图\ref{fig:syn}(c)中我们可视化了最相似的轨迹，其中绿色轨迹的颜色深浅与检索顺序成正比。此外，我们使用第一层ROI网络（具有关键ROI标签的最佳级别）上的四个对比算法进行相同的实验。结果如图\ref{fig:synNDCG}所示。实验重复100次，阴影部分给出平均NDCG@k值的标准偏差。从图中可以看出，我们的模型优于其他四个模型，很好地捕获了语义信息。
+
+
+
 
 \subsection{真实数据集上的检索结果}
 
-我们实验的目标是，给定一个ROI，我们检索前5个最相似的ROI，并计算 NCDG@5。此外，给定一条轨迹，我们检索前10个最相似的轨迹，计算NCDG@3,5,10，并与对比算法进行比较。此外，我们将每个ROI邻居的数量设置为3，将负抽样的样本数设置为5，并交互范围设置为$\epsilon(l) = l \times 1/200\times(width + height), l = \{1,\cdots,5\}$来产生一个5层的ROI网络。
+我们实验的目标是，给定一个ROI，我们检索前5个最相似的ROI，并计算 NC-DG@5。此外，给定一条轨迹，我们检索前10个最相似的轨迹，计算NCDG@3,5,10，并与对比算法进行比较。此外，我们将每个ROI邻居的数量设置为3，将负抽样的样本数设置为5，并交互范围设置为$\epsilon(l) = l \times 1/200\times(width + height), l = \{1,\cdots,5\}$来产生一个5层的ROI网络。
 
-为了探索不同语义信息对现实数据检索性能的影响，我们取三种不同累心的模型来做实验：1)仅几何信息（即基本轨迹结构）;2)几何和基本语义（即网络特征和时间信息）; 3)所有类型的邻居和领域知识。此外，我们通过构建两个嵌入模型来研究特征传播的效果：仅在ROI网络的底层（$\epsilon(t) = 1/200 \times(width + height)$）用公式(\ref{eq:optimizeFun})进行训练，以及在ROI网络的5个层用式(\ref{eq:optimizeFunAll})进行训练。
+为了探索不同语义信息对现实数据检索性能的影响，我们取三种不同累心的模型来做实验：1）仅几何信息（即基本轨迹结构）。2）几何和基本语义（即网络特征和时间信息）。3）所有类型的邻居和领域知识。此外，我们通过构建两个嵌入模型来研究特征传播的效果：仅在ROI网络的底层（$\epsilon(t) = 1/200 \times(width + height)$）用公式(\ref{eq:optimizeFun})进行训练，以及在ROI网络的5个层用式(\ref{eq:optimizeFunAll})进行训练。
 
 为了更好地说明ROI检索的结果，我们选择Kaggle数据集中的一个枢纽十字路口作为目标ROI。我们在上述5层网络中运用了具有和不具有语义邻居的嵌入模型，检索结果如图\ref{fig:regionSim}所示。从结果来看，具有语义邻居的模型可以捕获语义信息，从而容易地识别区域的功能，并且能够检索到远离查询目标十字路口的其他枢纽十字路口。原因在于交通的语义可以通过节点度以及度分布的信息在ROI网络上反映出来，因此不会受到几何位置的限制。
 
@@ -361,7 +368,7 @@ ROI检索和轨迹检索的结果分别列在表\ref{tab:ROIEvaluation}和表\re
 \caption{四个真实数据集上的轨迹语义检索。}
 % \vspace{1mm}
 \center
-\footnotesize
+\small
 \tabcolsep=2pt
 \begin{tabular}{ccccccc}
 \hlinew{1pt}
@@ -390,7 +397,7 @@ ROI检索和轨迹检索的结果分别列在表\ref{tab:ROIEvaluation}和表\re
 % \hlinew{1pt}
 \end{tabular}
 
-\tabcolsep=6pt
+\tabcolsep=7pt
 \begin{tabular}{ccccccc}
 \hlinew{1pt}
 \multirow{2}{*}{\textbf{数据集}} & \multirow{2}{*}{\textbf{指标}} & \multicolumn{2}{c}{\textbf{单层模型}} & \multicolumn{2}{c}{\textbf{多层模型}}\\
@@ -425,4 +432,4 @@ ROI检索和轨迹检索的结果分别列在表\ref{tab:ROIEvaluation}和表\re
 \section{本章小结}
 在本章中，我们提出了一种新的语义轨迹嵌入表征方法。首先，经过 \CascadeSync模型将原始轨迹先转换为多层次的ROI网络。在这个网络上，可以依靠几何，语义，时间等信息以及作为上下文找到嵌入模型中的两种类型的邻居，其次利用负采样算法，计算出每一层ROI和轨迹的分布式表征向量。得到这个向量后，课通过直接计算向量间的欧几里德距离来高效地执行语义检索任务。在人工数据集和现实数据集上，本文的方法有效地提取并表征了语义信息，效果超过了四种主流算法。
 
-\newpage\mbox{}\thispagestyle{empty}\newpage
+% \newpage\mbox{}\thispagestyle{empty}\newpage
