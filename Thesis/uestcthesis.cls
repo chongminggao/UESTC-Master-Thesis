@@ -955,7 +955,7 @@ pdfdisplaydoctitle=true
 \bibliographystyle{uestcthesis}
 \phantomsection%手动添加目录项之前需要这个命令，用以更新目录超链接的跳转页码。
 \addcontentsline{toc}{chapter}{\CTEX@bibname}%将参考文献编入目录
-\nocite{*}%若将此命令屏蔽掉，则未引用的文献不会出现在文后的参考文献列表中。
+% \nocite{*}%若将此命令屏蔽掉，则未引用的文献不会出现在文后的参考文献列表中。
 {\zihao{5}\baselineskip=20bp{}
 \bibliography{contents/reference}%插入参考文献
 }

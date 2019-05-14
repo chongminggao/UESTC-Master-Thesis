@@ -3,7 +3,7 @@
 \chapter{分布式轨迹语义表征}
 \label{chapter:main2}
 
-要在轨迹上进行信息挖掘，首先需要在轨迹上定义一个空间，使得轨迹中蕴含的语义可以得到表示，同时使不同轨迹之间感兴趣的相似度能够得到衡量。在不同的场景下，研究者们纷纷提出利于自己算法运行的轨迹表征方法，然而根据应用定下的表征通常没有普适性。为此，本文提出了一种鲁班的轨迹表征方法，使得各种感兴趣的语义都能根据需求融入此表征方法中，进而为后续轨迹挖掘任务打下基础。
+要在轨迹上进行信息挖掘，首先需要在轨迹上定义一个空间，使得轨迹中蕴含的语义可以得到表示，同时使不同轨迹之间感兴趣的相似度能够得到衡量。在不同的场景下，研究者们纷纷提出利于自己算法运行的轨迹表征方法，然而根据应用定下的表征通常没有普适性。为此，本章提出了一种鲁班的轨迹表征方法，使得各种感兴趣的语义都能根据需求融入此表征方法中，进而为后续轨迹挖掘任务打下基础。
 
 
 \section{问题描述}
@@ -113,7 +113,7 @@ L_{V^l} = \sum_{w\in{\mathcal{ROI}^l}}\frac{1}{2}||\vec{t_w}-\vec{t_{\pi(w)}}||^
 \label{eq:optimizeFunAll}
 \max \sum_{l=1:L_M} L_{H^l} - \alpha\hspace{-2mm}\sum_{l=1:L_M-1}\hspace{-2mm}L_{V^l}
 \end{equation}
-其中$\alpha$是一个折中系数。上面这个优化式可由随机梯度下降法（Stochastic Gradient Descent, SGD)来进行优化求解。参数的梯度项写在了算法\ref{alg:embedding}的7-17行里。
+其中$\alpha$是一个折中系数。上面这个优化式可由随机梯度下降法（Stochastic Gradient Descent, SGD)来进行优化求解。参数的梯度项以及更新规则见伪代码Algorithm \ref{alg:embedding}的7-17行。
 
 
 
@@ -129,7 +129,7 @@ L_{V^l} = \sum_{w\in{\mathcal{ROI}^l}}\frac{1}{2}||\vec{t_w}-\vec{t_{\pi(w)}}||^
 
 
 \begin{algorithm}[!t]
-\caption{语义轨迹嵌入模型}
+\caption{语义轨迹嵌入模型。}
 \label{alg:embedding}
 \SetKwData{True}{True}
 \SetKwData{False}{False}
@@ -198,13 +198,13 @@ vec$({ROI}_i) =[\vec{s_i}, \vec{t_i}]$
 和上一章节一样的方法，我们用概率路径规划算法\citeup{kavraki1996probabilistic}生成50条随机轨迹。我们随机选择10个点作为关键节点，并确保每个关键节点至少有一条轨迹通过。 语义ROI和轨迹检索任务旨在检测与这些关键点高度相关的ROI和轨迹。
 
 \smallsection{真实数据集}
-在上一章节Geolife和T-Drive轨迹数据的基础上，我们又引进了Kaggle 和Chengdu两个新的轨迹集。它们的统计信息在表\ref{tab:datasets}中。
+在上一章节Geolife和T-Drive轨迹数据的基础上，我们又引进了Kaggle 和Chengdu两个新的轨迹集。它们的统计信息在表\ref{tab:datasets4}中。
 
 
 % \tabcolsep=1pt
 \begin{table}[!htb]\renewcommand{\arraystretch}{1.3}
 % \vspace{-5mm}
-\caption{四个真实数据集的统计信息}
+\caption{四个真实数据集的统计信息。}
 % \vspace{-3mm}
 \center
 \small
@@ -220,7 +220,7 @@ Chengdu
 & 9,671,104 & 2,003 & $[103.913 ,104.180, 30.538, 30.765]$ & [25,484 $\times$ 25,219] \\
 \hlinew{1pt}
 \end{tabular}
-\label{tab:datasets}
+\label{tab:datasets4}
 \end{table}
 
 \smallsection{真实数据的区域语义获取方法}现实世界的轨迹数据富含各种语义信息，然而，真实的语义信息却通常很难获得。幸运的是，受益于在线地图服务的反向地理编码功能，比如MapBox API\footnote{\url{https://www.mapbox.com/}}和高德地图API\footnote{\url{https://www.amap.com /}}，我们可以得到区域信息作为真实标签。具体而言，API可以将GPS坐标输入得到该地方的功能，例如银行，学校或市场。因此，我们将每个ROI的语义真实语义标签定义为其功能类别的分布，并将两个ROI$A$和$B$的真实相似性定义为两个分布的相交部分：
@@ -421,6 +421,6 @@ ROI检索和轨迹检索的结果分别列在表\ref{tab:ROIEvaluation}和表\re
 \end{table*}
 
 \section{本章小结}
-在本章中，我们提出了一种新的语义轨迹嵌入表征方法。首先，经过 \CascadeSync模型将原始轨迹先转换为多层次的ROI网络。在这个网络上，可以依靠几何，语义，时间等信息以及作为上下文找到嵌入模型中的两种类型的邻居，其次利用负采样算法，计算出每一层ROI和轨迹的分布式表征向量。得到这个向量后，课通过直接计算向量间的欧几里德距离来高效地执行语义检索任务。在人工数据集和现实数据集上，本文的方法有效地提取并表征了语义信息，效果超过了四种主流算法。
+在本章中，我们提出了一种新的语义轨迹嵌入表征方法。首先，经过 \CascadeSync模型将原始轨迹先转换为多层次的ROI网络。在这个网络上，可以依靠几何，语义，时间等信息以及作为上下文找到嵌入模型中的两种类型的邻居，其次利用负采样算法，计算出每一层ROI和轨迹的分布式表征向量。得到这个向量后，课通过直接计算向量间的欧几里德距离来高效地执行语义检索任务。在人工数据集和现实数据集上，本章的方法有效地提取并表征了语义信息，效果超过了四种主流算法。
 
 % \newpage\mbox{}\thispagestyle{empty}\newpage
