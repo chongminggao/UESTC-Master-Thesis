@@ -1,0 +1,72 @@
+% !Mode:: "TeX:UTF-8"
+
+\documentclass[master]{uestcthesis}
+\usepackage{IEEEtrantools}
+% \usepackage{algorithm}
+% \usepackage{algorithmic}
+\usepackage[linesnumbered,algoruled,boxed,lined]{algorithm2e}
+\usepackage{algpseudocode}
+\usepackage{multirow}
+\usepackage{indentfirst}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmin}{\mathop{\arg\min}}
+\title{轨迹语义表征与地点推荐研究}
+\author{高崇铭}
+\date{2019}{2}{14}
+
+
+
+\hyphenation{-Cas-cade-Sync-}
+\hyphenation{-Sync-}
+\hyphenation{-GPS-}
+
+
+
+
+\begin{document}
+\newcommand{\red}[1]{{\textcolor{red}{{} #1}}}
+\newcommand{\ud}{\,\mathrm{d}}
+\newcommand{\bt}{\vrule width 0.85pt}
+\newcommand{\CoSync}{CoSync}
+\newcommand{\Sync}{\textsc{Sync}}
+\newcommand{\cosync}{CoSync}
+\newcommand{\Cascade}{\textsc{CascadeSync}}
+\newcommand{\CascadeSync}{\textsc{CascadeSync}}
+\newcommand{\sync}{Sync}
+\newcommand{\smallsection}[1]{\vspace{3mm}
+\noindent\textbf{#1：}}
+
+\makeatletter
+\def\hlinew#1{%
+  \noalign{\ifnum0=`}\fi\hrule \@height #1 \futurelet
+   \reserved@a\@xhline}
+
+
+
+\newglossaryentry{pi}{name={$\pi$},description={圆周率符号},sort=pi}
+\newglossaryentry{T}{name={$T$},description={轨迹}}
+\newglossaryentry{P}{name={$p$},description={GPS点}}
+\newglossaryentry{T_set}{name={$\mathcal{T}$},description={轨迹集合}}
+\newglossaryentry{P_set}{name={$\mathcal{P}$},description={GPS点集合}}
+\newglossaryentry{V_set}{name={$\mathcal{V}$},description={网络节点集合}}
+\newglossaryentry{E_set}{name={$\mathcal{E}$},description={边集合}}
+\newglossaryentry{zeta}{name={$\zeta$},description={表示误差}}
+\newglossaryentry{epsilon}{name={$\epsilon$},description={同步算法的交互半径}}
+\newglossaryentry{R}{name={$R$},description={用户——商品评分矩阵}}
+\newglossaryentry{R_k}{name={$R^{(k)}$},description={残差矩阵}}
+\newglossaryentry{U}{name={$U$},description={用户——隐因子矩阵}}
+\newglossaryentry{V}{name={$V$},description={隐因子——商品矩阵}}
+\newglossaryentry{G}{name={$G$},description={隐因子——商品矩阵}}
+
+
+\include{chapters/ChapterA}
+\include{chapters/ChapterB}
+\include{chapters/ChapterC}
+\include{chapters/ChapterD}
+\include{chapters/ChapterE}
+\include{chapters/Conclusion}
+\end{document}
+
+
+
